@@ -20,6 +20,8 @@ type Item struct {
 	Size int64
 	Age  time.Time
 	Note string
+	App  bool     // an .app bundle in /Applications: removed with fsx.TrashApp
+	Cmd  []string // removed by running this command instead of deleting Path
 }
 
 // Total sums item sizes.

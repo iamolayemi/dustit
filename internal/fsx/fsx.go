@@ -11,6 +11,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/iamolayemi/macclean/internal/history"
 )
 
 // Home is the user's home folder. It is set during package initialisation so other
@@ -131,6 +133,15 @@ func ModTime(p string) time.Time {
 	return LastTouched(&st)
 }
 
+// BirthTime is when the file was created on this disk (falls back to ModTime).
+func BirthTime(p string) time.Time {
+	var st syscall.Stat_t
+	if err := syscall.Lstat(p, &st); err != nil || st.Birthtimespec.Sec == 0 {
+		return ModTime(p)
+	}
+	return time.Unix(st.Birthtimespec.Unix())
+}
+
 // FreeSpace is the space available to the user on the home volume.
 func FreeSpace() int64 {
 	var s syscall.Statfs_t
@@ -186,23 +197,34 @@ func CheckDeletable(p string) error {
 }
 
 // Remove deletes p (or moves it to the Trash) after CheckDeletable approves it.
-func Remove(p string, toTrash bool) error {
+func Remove(p string, toTrash bool) error { return RemoveSized(p, toTrash, 0) }
+
+// RemoveSized is Remove with the item's known size, recorded in the history log.
+func RemoveSized(p string, toTrash bool, size int64) error {
 	if err := CheckDeletable(p); err != nil {
 		return err
 	}
 	if toTrash {
-		return moveToTrash(p)
+		dst, err := moveToTrash(p)
+		if err == nil {
+			history.Log(history.Trashed, p, dst, size)
+		}
+		return err
 	}
-	return os.RemoveAll(p) // does not follow symlinks
+	if err := os.RemoveAll(p); err != nil { // does not follow symlinks
+		return err
+	}
+	history.Log(history.Deleted, p, "", size)
+	return nil
 }
 
-func moveToTrash(p string) error {
+func moveToTrash(p string) (string, error) {
 	dst := filepath.Join(Home, ".Trash", filepath.Base(p))
 	if Exists(dst) {
 		ext := filepath.Ext(dst)
 		dst = fmt.Sprintf("%s %s%s", strings.TrimSuffix(dst, ext), time.Now().Format("15.04.05.000"), ext)
 	}
-	return os.Rename(p, dst)
+	return dst, os.Rename(p, dst)
 }
 
 // TrashApp moves an .app bundle from an Applications folder to the Trash.
@@ -219,8 +241,11 @@ func TrashApp(p string) error {
 	if fi, err := os.Lstat(p); err != nil || fi.Mode()&os.ModeSymlink != 0 {
 		return fmt.Errorf("refusing %s: missing or a symlink", p)
 	}
-	if err := moveToTrash(p); err != nil {
+	size := DiskUsage(p).Bytes
+	dst, err := moveToTrash(p)
+	if err != nil {
 		return fmt.Errorf("%v — the app may need an admin password; drag it to the Trash in Finder", err)
 	}
+	history.Log(history.Trashed, p, dst, size)
 	return nil
 }

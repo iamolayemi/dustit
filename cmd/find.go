@@ -243,7 +243,7 @@ func newDupesCmd() *cobra.Command {
 					if j == keep-1 {
 						continue
 					}
-					if err := fsx.Remove(p, true); err != nil {
+					if err := fsx.RemoveSized(p, true, g.Size); err != nil {
 						ui.Err("  %v", err)
 						continue
 					}
@@ -324,7 +324,7 @@ func newAppsCmd() *cobra.Command {
 				freed += a.Size
 				for _, d := range data {
 					sz := fsx.DiskUsage(d).Bytes
-					if err := fsx.Remove(d, true); err != nil {
+					if err := fsx.RemoveSized(d, true, sz); err != nil {
 						ui.Warn("  kept %s: %v", fsx.Pretty(d), err)
 						continue
 					}

@@ -21,12 +21,12 @@ type DupGroup struct {
 // Wasted is the space the extra copies take.
 func (g DupGroup) Wasted() int64 { return g.Size * int64(len(g.Paths)-1) }
 
-// Keeper is the index of the copy to keep: the oldest, then the shortest path.
+// Keeper is the index of the copy to keep: the first one created, then the shortest path.
 func (g DupGroup) Keeper() int {
 	best := 0
-	bt := fsx.ModTime(g.Paths[0])
+	bt := fsx.BirthTime(g.Paths[0])
 	for i, p := range g.Paths[1:] {
-		t := fsx.ModTime(p)
+		t := fsx.BirthTime(p)
 		if t.Before(bt) || (t.Equal(bt) && len(p) < len(g.Paths[best])) {
 			best, bt = i+1, t
 		}

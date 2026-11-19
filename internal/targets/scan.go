@@ -10,6 +10,7 @@ import (
 
 	"github.com/iamolayemi/macclean/internal/finder"
 	"github.com/iamolayemi/macclean/internal/fsx"
+	"github.com/iamolayemi/macclean/internal/history"
 	"github.com/iamolayemi/macclean/internal/sh"
 )
 
@@ -150,6 +151,8 @@ func Clean(r Result, o CleanOptions) (freed int64, failed int) {
 		log = func(string) {}
 	}
 	t := r.T
+	history.SetCategory(t.ID)
+	defer history.SetCategory("")
 	if len(t.CleanCmd) > 0 {
 		log("$ " + joinArgs(t.CleanCmd))
 		if o.DryRun {
@@ -165,12 +168,15 @@ func Clean(r Result, o CleanOptions) (freed int64, failed int) {
 		return 0, 0
 	}
 	for i, it := range r.Items {
-		if !fsx.Exists(it.Path) {
+		if !fsx.Exists(it.Path) && len(it.Cmd) == 0 {
 			continue // already removed by an overlapping category
 		}
 		if o.DryRun {
 			if i < 10 {
 				line := "would remove " + fsx.Pretty(it.Path)
+				if len(it.Cmd) > 0 {
+					line = "would run " + joinArgs(it.Cmd)
+				}
 				if it.Note != "" {
 					line += "  (" + it.Note + ")"
 				}
@@ -181,7 +187,19 @@ func Clean(r Result, o CleanOptions) (freed int64, failed int) {
 			freed += it.Size
 			continue
 		}
-		if err := fsx.Remove(it.Path, o.Trash || t.ToTrash); err != nil {
+		var err error
+		switch {
+		case len(it.Cmd) > 0:
+			log("$ " + joinArgs(it.Cmd))
+			if err = sh.Shown(it.Cmd...); err == nil {
+				history.Log(history.Deleted, it.Path, "", it.Size)
+			}
+		case it.App:
+			err = fsx.TrashApp(it.Path)
+		default:
+			err = fsx.RemoveSized(it.Path, o.Trash || t.ToTrash, it.Size)
+		}
+		if err != nil {
 			failed++
 			freed += max(it.Size-fsx.DiskUsage(it.Path).Bytes, 0) // partial removal still frees space
 			continue

@@ -71,7 +71,7 @@ func removeAll(items []finder.Item, toTrash bool) {
 	var freed int64
 	failed := 0
 	for _, it := range items {
-		if err := fsx.Remove(it.Path, toTrash); err != nil {
+		if err := fsx.RemoveSized(it.Path, toTrash, it.Size); err != nil {
 			failed++
 			ui.Err("  %v", err)
 			continue
@@ -101,7 +101,7 @@ func reviewEach(items []finder.Item, toTrash bool) {
 		if a != "y" && a != "yes" {
 			continue
 		}
-		if err := fsx.Remove(it.Path, toTrash); err != nil {
+		if err := fsx.RemoveSized(it.Path, toTrash, it.Size); err != nil {
 			ui.Err("  %v", err)
 			continue
 		}

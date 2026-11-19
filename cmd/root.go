@@ -9,6 +9,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
 	"github.com/spf13/cobra"
+
+	"github.com/iamolayemi/macclean/internal/history"
 )
 
 // Set at build time by GoReleaser (-ldflags "-X github.com/iamolayemi/macclean/cmd.version=…").
@@ -33,6 +35,7 @@ Nothing is deleted without asking unless you pass --yes. Start with:
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			history.Begin(cmd.CommandPath())
 			if noColor || os.Getenv("NO_COLOR") != "" {
 				lipgloss.SetColorProfile(termenv.Ascii)
 			}
@@ -51,7 +54,7 @@ Nothing is deleted without asking unless you pass --yes. Start with:
 	doctorCmd := newDoctorCmd()
 	doctorCmd.GroupID = "speed"
 	root.AddCommand(doctorCmd)
-	for _, c := range []*cobra.Command{newScanCmd(), newCleanCmd(), newListCmd(), newDockerCmd()} {
+	for _, c := range []*cobra.Command{newScanCmd(), newCleanCmd(), newListCmd(), newDockerCmd(), newHistoryCmd(), newUndoCmd()} {
 		c.GroupID = "clean"
 		root.AddCommand(c)
 	}
