@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v5
         with:
@@ -18,7 +18,7 @@ jobs:
         with:
           go-version-file: go.mod
       - name: Test
-        run: GOOS=darwin go vet ./...
+        run: go vet ./... && go test ./...
       - uses: goreleaser/goreleaser-action@v6
         with:
           version: "~> v2"
