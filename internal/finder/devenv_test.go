@@ -101,3 +101,12 @@ func TestMergedBranches(t *testing.T) {
 		t.Errorf("only the merged branch should be deleted, got %v", cmd)
 	}
 }
+
+func TestContainsDir(t *testing.T) {
+	if !containsDir("/x/Mail/V10/acct/INBOX.mbox/Attachments/12/2/photo.jpg", "Attachments") {
+		t.Error("attachment path not recognised")
+	}
+	if containsDir("/x/Mail/V10/acct/INBOX.mbox/Messages/12.emlx", "Attachments") {
+		t.Error("message file must not count as an attachment")
+	}
+}
