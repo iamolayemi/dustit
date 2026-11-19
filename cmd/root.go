@@ -64,6 +64,10 @@ Nothing is deleted without asking unless you pass --yes. Start with:
 		root.AddCommand(c)
 	}
 	root.AddCommand(newGenCmd(root))
+	for _, c := range extraFindCommands() {
+		c.GroupID = "find"
+		root.AddCommand(c)
+	}
 	for _, c := range []*cobra.Command{newDoctorCmd(), newPrivacyCmd()} {
 		c.GroupID = "speed"
 		root.AddCommand(c)
