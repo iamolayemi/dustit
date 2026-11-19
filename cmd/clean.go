@@ -107,11 +107,26 @@ func newCleanCmd() *cobra.Command {
 }
 
 func newListCmd() *cobra.Command {
-	return &cobra.Command{
+	var asJSON bool
+	c := &cobra.Command{
 		Use:   "list",
 		Short: "List all cleanup categories",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
+			if asJSON {
+				type entry struct {
+					ID          string `json:"id"`
+					Name        string `json:"name"`
+					Description string `json:"description"`
+					Risk        string `json:"risk"`
+				}
+				var out []entry
+				for _, t := range targets.All() {
+					out = append(out, entry{t.ID, t.Name, t.Desc, t.Risk.String()})
+				}
+				_ = writeJSON(out)
+				return
+			}
 			for _, risk := range []targets.Risk{targets.Safe, targets.Review} {
 				title := "Safe (cleaned by `macclean clean`):"
 				if risk == targets.Review {
@@ -127,4 +142,6 @@ func newListCmd() *cobra.Command {
 			fmt.Println()
 		},
 	}
+	c.Flags().BoolVar(&asJSON, "json", false, "print machine-readable JSON")
+	return c
 }

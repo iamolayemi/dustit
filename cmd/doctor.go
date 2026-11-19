@@ -10,7 +10,7 @@ import (
 )
 
 func newDoctorCmd() *cobra.Command {
-	var fix, all bool
+	var fix, all, asJSON bool
 	c := &cobra.Command{
 		Use:   "doctor",
 		Short: "Diagnose why your Mac feels slow, with specific fixes",
@@ -30,6 +30,9 @@ only makes apps slower while they reload.`,
 			stop := ui.Spin("Examining your Mac…")
 			findings := doctor.Run(ui.Human)
 			stop()
+			if asJSON {
+				return writeJSON(doctorJSON(findings))
+			}
 
 			problems, fixes := 0, 0
 			fmt.Println()
@@ -83,6 +86,7 @@ only makes apps slower while they reload.`,
 	}
 	c.Flags().BoolVar(&fix, "fix", false, "offer the safe automatic fixes, asking before each")
 	c.Flags().BoolVar(&all, "verbose", false, "show details for checks that passed too")
+	c.Flags().BoolVar(&asJSON, "json", false, "print machine-readable JSON")
 	return c
 }
 

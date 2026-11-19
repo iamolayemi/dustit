@@ -14,7 +14,7 @@ import (
 )
 
 func newScanCmd() *cobra.Command {
-	var verbose bool
+	var verbose, asJSON bool
 	c := &cobra.Command{
 		Use:   "scan",
 		Short: "Show how much each cleanup category would free (read-only)",
@@ -24,6 +24,9 @@ func newScanCmd() *cobra.Command {
 			results := targets.ScanAll(targets.All())
 			insights := finder.Insights(ui.Human)
 			stop()
+			if asJSON {
+				return writeJSON(scanJSON(results, insights, fsx.FreeSpace(), verbose))
+			}
 
 			printResults(results, verbose)
 			if len(insights) > 0 {
@@ -39,7 +42,8 @@ func newScanCmd() *cobra.Command {
 			return nil
 		},
 	}
-	c.Flags().BoolVarP(&verbose, "verbose", "v", false, "show the largest items in each category")
+	c.Flags().BoolVarP(&verbose, "verbose", "v", false, "show the largest items in each category (with --json: include every item)")
+	c.Flags().BoolVar(&asJSON, "json", false, "print machine-readable JSON")
 	return c
 }
 

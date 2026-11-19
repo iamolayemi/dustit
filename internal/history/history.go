@@ -116,15 +116,15 @@ func Load() ([]Record, error) {
 
 // Run groups the records of one invocation.
 type Run struct {
-	ID       string
-	Command  string
-	Time     time.Time
-	Records  []Record
-	Undone   bool
-	Bytes    int64
-	Trashed  int
-	Deleted  int
-	Restored int // for undo runs
+	ID       string    `json:"id"`
+	Command  string    `json:"command"`
+	Time     time.Time `json:"time"`
+	Records  []Record  `json:"-"`
+	Undone   bool      `json:"undone"`
+	Bytes    int64     `json:"size_bytes"`
+	Trashed  int       `json:"trashed"`
+	Deleted  int       `json:"deleted"`
+	Restored int       `json:"restored,omitempty"` // for undo runs
 }
 
 // Runs groups records into runs, newest first.

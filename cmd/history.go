@@ -12,6 +12,7 @@ import (
 
 func newHistoryCmd() *cobra.Command {
 	var n int
+	var asJSON bool
 	c := &cobra.Command{
 		Use:   "history [run-id]",
 		Short: "List what macclean removed, or the items of one run",
@@ -22,6 +23,19 @@ func newHistoryCmd() *cobra.Command {
 				return err
 			}
 			runs := history.Runs(records)
+			if asJSON {
+				if len(args) == 1 {
+					r, err := history.Find(runs, args[0])
+					if err != nil {
+						return err
+					}
+					return writeJSON(r.Records)
+				}
+				if len(runs) > n {
+					runs = runs[:n]
+				}
+				return writeJSON(runs)
+			}
 			if len(runs) == 0 {
 				fmt.Println("Nothing has been removed yet.")
 				return nil
@@ -63,6 +77,7 @@ func newHistoryCmd() *cobra.Command {
 		},
 	}
 	c.Flags().IntVarP(&n, "number", "n", 15, "how many runs to show")
+	c.Flags().BoolVar(&asJSON, "json", false, "print machine-readable JSON")
 	return c
 }
 

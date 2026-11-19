@@ -12,8 +12,8 @@ import (
 
 // Insight is a space user macclean reports but can't clean blindly.
 type Insight struct {
-	Text string
-	Hint string
+	Text string `json:"text"`
+	Hint string `json:"hint"`
 }
 
 // Insights reports the Docker disk image, Time Machine local snapshots and big app-data folders.
