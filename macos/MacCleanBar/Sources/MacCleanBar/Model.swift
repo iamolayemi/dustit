@@ -107,16 +107,65 @@ final class Model: ObservableObject {
         await refresh()
     }
 
-    /// Opens Terminal running a macclean command (used for the interactive picker).
+    @Published var working: String?
+
+    /// Opens Terminal running a macclean command. Uses a small .command file, which Terminal
+    /// opens without needing the Automation (Apple Events) permission.
     func openInTerminal(_ args: String) {
-        guard let path = CLI.path else { return }
-        let script = "tell application \"Terminal\" to do script \"'\(path)' \(args)\"\ntell application \"Terminal\" to activate"
-        NSAppleScript(source: script)?.executeAndReturnError(nil)
+        guard let path = CLI.path else {
+            banner = Banner(text: CLI.Failure(message: "").installHint, isError: true)
+            return
+        }
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent("macclean-\(UUID().uuidString.prefix(8)).command")
+        let script = """
+        #!/bin/zsh
+        clear
+        '\(path)' \(args)
+        echo
+        echo "Done. You can close this window."
+        rm -f "$0"
+        """
+        do {
+            try script.write(to: file, atomically: true, encoding: .utf8)
+            try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: file.path)
+            let config = NSWorkspace.OpenConfiguration()
+            NSWorkspace.shared.open([file], withApplicationAt: URL(fileURLWithPath: "/System/Applications/Utilities/Terminal.app"),
+                                    configuration: config) { _, error in
+                if let error {
+                    Task { @MainActor in self.banner = Banner(text: "Couldn't open Terminal: \(error.localizedDescription)", isError: true) }
+                }
+            }
+        } catch {
+            banner = Banner(text: "Couldn't open Terminal: \(error.localizedDescription)", isError: true)
+        }
+    }
+
+    /// Opens the config file in the default text editor (creating it from the example first).
+    func openSettings() async {
+        _ = try? await CLI.run(["config", "init"]) // fine if it already exists
+        guard let out = try? await CLI.run(["config", "path"]),
+              let path = String(data: out, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !path.isEmpty else {
+            banner = Banner(text: "Couldn't find the settings file.", isError: true)
+            return
+        }
+        let url = URL(fileURLWithPath: path)
+        let editor = NSWorkspace.shared.urlForApplication(toOpen: url) ?? URL(fileURLWithPath: "/System/Applications/TextEdit.app")
+        do {
+            try await NSWorkspace.shared.open([url], withApplicationAt: editor, configuration: NSWorkspace.OpenConfiguration())
+        } catch {
+            banner = Banner(text: "Couldn't open settings: \(error.localizedDescription)", isError: true)
+        }
     }
 
     func openReport() async {
+        guard working == nil else { return }
+        working = "Building storage report…"
+        defer { working = nil }
         let file = FileManager.default.temporaryDirectory.appendingPathComponent("macclean-report.html").path
-        do { _ = try await CLI.run(["report", "--no-doctor", "-o", file, "--open"]) } catch {
+        do {
+            _ = try await CLI.run(["report", "-o", file])
+            NSWorkspace.shared.open(URL(fileURLWithPath: file))
+        } catch {
             banner = Banner(text: error.localizedDescription, isError: true)
         }
     }

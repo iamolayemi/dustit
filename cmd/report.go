@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -43,7 +45,7 @@ of your home folder, every cleanup category and the doctor's findings. Nothing i
 			}()
 			go func() {
 				if !noMap {
-					tree = finder.Tree(fsx.Home, 12)
+					tree = finder.Tree(fsx.Home, 100000)
 				}
 				done <- struct{}{}
 			}()
@@ -54,7 +56,14 @@ of your home folder, every cleanup category and the doctor's findings. Nothing i
 
 			free, total := fsx.DiskTotals()
 			safe, review, _ := targets.Totals(results)
-			d := report.Data{Generated: time.Now(), Version: version, Free: free, Total: total, Safe: safe, Review: review, Tree: tree, Human: ui.Human}
+			host, _ := os.Hostname()
+			d := report.Data{Generated: time.Now(), Version: version, Host: strings.TrimSuffix(host, ".local"), Free: free, Total: total,
+				Safe: safe, Review: review, Human: ui.Human}
+			if tree != nil {
+				d.Groups = finder.StorageFrom(tree)
+				d.Tree = tree.Folded(12)
+			}
+			sort.SliceStable(results, func(i, j int) bool { return results[i].Bytes > results[j].Bytes })
 			for _, r := range results {
 				if r.Unavailable != "" {
 					continue
@@ -63,7 +72,11 @@ of your home folder, every cleanup category and the doctor's findings. Nothing i
 					Risk: r.T.Risk.String(), Bytes: r.Bytes, Items: len(r.Items), Known: r.SizeKnown()})
 			}
 			for _, f := range findings {
-				d.Findings = append(d.Findings, report.Finding{Check: f.Check, Severity: severityNames[f.Severity], Summary: f.Summary, Advice: f.Advice})
+				short := f.Short
+				if short == "" {
+					short = f.Summary
+				}
+				d.Findings = append(d.Findings, report.Finding{Check: f.Check, Severity: severityNames[f.Severity], Summary: f.Summary, Short: short, Advice: f.Advice})
 			}
 			html, err := report.Render(d)
 			if err != nil {

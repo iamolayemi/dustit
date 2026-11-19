@@ -52,7 +52,7 @@ func TestRenderEscapesAndIncludesSections(t *testing.T) {
 	if strings.Contains(s, "<script>alert(1)</script>") {
 		t.Error("folder names must be escaped")
 	}
-	for _, want := range []string{"npm-cache", "Memory:", "<svg", "Projects"} {
+	for _, want := range []string{"npm-cache", "Memory", "<svg", "Projects"} {
 		if !strings.Contains(s, want) {
 			t.Errorf("report is missing %q", want)
 		}

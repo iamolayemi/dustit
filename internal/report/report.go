@@ -24,45 +24,45 @@ type Category struct {
 
 // Finding is one doctor result.
 type Finding struct {
-	Check, Severity, Summary string
-	Advice                   []string
+	Check, Severity, Summary, Short string
+	Advice                          []string
 }
 
 // Data is everything the report shows.
 type Data struct {
 	Generated    time.Time
 	Version      string
+	Host         string
 	Free, Total  int64
 	Safe, Review int64
+	Groups       []finder.Group
 	Categories   []Category
 	Findings     []Finding
 	Tree         *finder.Node
 	Human        func(int64) string
 }
 
-// Tile is a positioned treemap tile for the template.
+// Tile is a positioned treemap tile.
 type Tile struct {
-	X, Y, W, H   float64
-	Name, Title  string
-	Fill, Text   string
-	Label, Small bool
+	X, Y, W, H float64
+	Name, Size string
+	Title      string
+	Class      string // colour class, shared with the storage bar legend
+	Parent     bool   // a top-level folder (drawn behind its children)
+	Label, Two bool   // show the name; show the size on a second line
 }
 
-// textOn picks black or white text for readable contrast on a #rrggbb fill.
-func textOn(hex string) string {
-	var r, g, b int
-	_, _ = fmt.Sscanf(hex, "#%02x%02x%02x", &r, &g, &b)
-	if 0.299*float64(r)+0.587*float64(g)+0.114*float64(b) > 150 {
-		return "#1d1d1f"
-	}
-	return "#ffffff"
+// Segment is one slice of the storage bar.
+type Segment struct {
+	Name, Size, Hint, Class string
+	Pct                     float64
 }
 
-var palette = []string{"#4e79a7", "#f28e2b", "#59a14f", "#e15759", "#76b7b2", "#edc948", "#b07aa1", "#9c755f", "#ff9da7", "#bab0ac", "#86bcb6", "#d37295", "#a0cbe8"}
+const (
+	mapW, mapH = 1000.0, 520.0
+	colours    = 10
+)
 
-const mapW, mapH = 1000.0, 560.0
-
-// tiles lays out the two-level tree: each top folder gets a colour, its children are drawn inside it.
 func tiles(root *finder.Node, human func(int64) string) []Tile {
 	if root == nil {
 		return nil
@@ -74,31 +74,50 @@ func tiles(root *finder.Node, human func(int64) string) []Tile {
 	}
 	for _, r := range Squarify(sizes, 0, 0, mapW, mapH) {
 		top := root.Children[r.Index]
-		color := palette[r.Index%len(palette)]
-		if len(top.Children) == 0 || r.W < 40 || r.H < 30 {
-			out = append(out, tile(r, top.Name, fmt.Sprintf("%s — %s", top.Path, human(top.Size)), color, human))
+		class := fmt.Sprintf("c%d", r.Index%colours)
+		name := top.Name
+		if name == "other" {
+			name, class = "Everything else", "cx"
+		}
+		if len(top.Children) == 0 || r.W < 70 || r.H < 50 {
+			out = append(out, leaf(r, name, top, class, human))
 			continue
 		}
-		// leave room for the folder's own label
+		out = append(out, Tile{X: r.X, Y: r.Y, W: r.W, H: r.H, Name: name, Size: human(top.Size), Class: class,
+			Title: fmt.Sprintf("%s — %s", top.Path, human(top.Size)), Parent: true, Label: true})
 		inner := make([]int64, len(top.Children))
 		for i, c := range top.Children {
 			inner[i] = c.Size
 		}
-		out = append(out, Tile{X: r.X, Y: r.Y, W: r.W, H: r.H, Name: top.Name + " · " + human(top.Size),
-			Title: fmt.Sprintf("%s — %s", top.Path, human(top.Size)), Fill: color, Text: textOn(color), Label: true})
-		for _, c := range Squarify(inner, r.X+2, r.Y+18, r.W-4, r.H-20) {
+		for _, c := range Squarify(inner, r.X+3, r.Y+24, r.W-6, r.H-27) {
 			ch := top.Children[c.Index]
-			t := tile(c, ch.Name, fmt.Sprintf("%s — %s", ch.Path, human(ch.Size)), color, human)
-			t.Small = true
-			out = append(out, t)
+			out = append(out, leaf(c, ch.Name, ch, class, human))
 		}
 	}
 	return out
 }
 
-func tile(r Rect, name, title, color string, human func(int64) string) Tile {
-	return Tile{X: r.X, Y: r.Y, W: r.W, H: r.H, Name: name, Title: title, Fill: color, Text: textOn(color),
-		Label: r.W > 60 && r.H > 18}
+func leaf(r Rect, name string, n *finder.Node, class string, human func(int64) string) Tile {
+	return Tile{X: r.X, Y: r.Y, W: r.W, H: r.H, Name: name, Size: human(n.Size), Class: class,
+		Title: fmt.Sprintf("%s — %s", n.Path, human(n.Size)),
+		Label: r.W > 56 && r.H > 20, Two: r.W > 56 && r.H > 38}
+}
+
+func segments(d Data) []Segment {
+	if d.Total <= 0 || len(d.Groups) == 0 {
+		return nil
+	}
+	var out []Segment
+	i := 0
+	for _, g := range d.Groups {
+		pct := float64(g.Size) / float64(d.Total) * 100
+		if pct < 0.4 {
+			continue
+		}
+		out = append(out, Segment{Name: g.Name, Size: d.Human(g.Size), Hint: g.Hint, Class: fmt.Sprintf("c%d", i%colours), Pct: pct})
+		i++
+	}
+	return append(out, Segment{Name: "Free", Size: d.Human(d.Free), Class: "free", Pct: float64(d.Free) / float64(d.Total) * 100})
 }
 
 // Render returns the HTML page.
@@ -111,19 +130,9 @@ func Render(d Data) ([]byte, error) {
 			}
 			return math.Round(float64(a)/float64(b)*1000) / 10
 		},
-		"bar": func(a int64) float64 {
-			var mx int64
-			for _, c := range d.Categories {
-				mx = max(mx, c.Bytes)
-			}
-			if mx == 0 {
-				return 0
-			}
-			return float64(a) / float64(mx) * 100
-		},
 		"short": func(s string, w float64) string {
 			r := []rune(s) // cut by character, never inside a multi-byte one
-			n := int(w / 7)
+			n := int(w / 7.2)
 			if len(r) <= n {
 				return s
 			}
@@ -132,13 +141,19 @@ func Render(d Data) ([]byte, error) {
 			}
 			return string(r[:n-1]) + "…"
 		},
-		"add": func(a, b float64) float64 { return a + b },
+		"add": func(vals ...float64) float64 {
+			var t float64
+			for _, v := range vals {
+				t += v
+			}
+			return t
+		},
 	}
 	t, err := template.New("report.html.tmpl").Funcs(funcs).ParseFS(files, "report.html.tmpl")
 	if err != nil {
 		return nil, err
 	}
 	var b bytes.Buffer
-	err = t.Execute(&b, map[string]any{"D": d, "Tiles": tiles(d.Tree, d.Human), "W": mapW, "H": mapH})
+	err = t.Execute(&b, map[string]any{"D": d, "Tiles": tiles(d.Tree, d.Human), "Segments": segments(d), "W": mapW, "H": mapH})
 	return b.Bytes(), err
 }

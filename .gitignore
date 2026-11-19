@@ -7,3 +7,4 @@ coverage.*
 /generated/
 /macclean-report*.html
 /macos/MacCleanBar/.build/
+/.claude/

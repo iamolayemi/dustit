@@ -6,6 +6,11 @@ import SwiftUI
 struct PanelView: View {
     @EnvironmentObject var model: Model
 
+    /// Runs an action and closes the panel, like choosing a menu item.
+    private func pick(_ action: @escaping () -> Void) -> () -> Void {
+        { closePanel(); action() }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             DiskHeader()
@@ -21,12 +26,15 @@ struct PanelView: View {
                     MenuDivider()
                 }
                 MenuItem(title: scan.safe_bytes > 0 ? "Clean Up \(oneDecimal(scan.safe_bytes))…" : "Nothing to Clean Up",
-                         enabled: scan.safe_bytes > 0 && !model.busy) { Task { await model.cleanSafe() } }
+                         enabled: scan.safe_bytes > 0 && !model.busy, action: pick { Task { await model.cleanSafe() } })
                 if scan.review_bytes > 0 {
-                    MenuItem(title: "Review \(oneDecimal(scan.review_bytes))…") { model.openInTerminal("ui") }
+                    MenuItem(title: "Review \(oneDecimal(scan.review_bytes))…", action: pick { model.openInTerminal("ui") })
                 }
             } else {
                 StatusRow(text: model.scanning ? "Scanning…" : "No scan yet", spinning: model.scanning)
+            }
+            if let working = model.working {
+                StatusRow(text: working, spinning: true)
             }
             if model.cleaning {
                 StatusRow(text: "Cleaning…", spinning: true)
@@ -40,10 +48,10 @@ struct PanelView: View {
             HealthSection()
 
             MenuDivider()
-            MenuItem(title: "Storage Report") { Task { await model.openReport() } }
-            MenuItem(title: "Full Health Check…") { model.openInTerminal("doctor") }
-            MenuItem(title: "Undo Last Clean-Up…") { model.openInTerminal("undo") }
-            MenuItem(title: "Settings…") { model.openInTerminal("config edit") }
+            MenuItem(title: model.working ?? "Storage Report", enabled: model.working == nil) { Task { await model.openReport() } }
+            MenuItem(title: "Full Health Check…", action: pick { model.openInTerminal("doctor") })
+            MenuItem(title: "Undo Last Clean-Up…", action: pick { model.openInTerminal("undo") })
+            MenuItem(title: "Settings…", action: pick { Task { await model.openSettings() } })
             MenuToggle(title: "Show Free Space in Menu Bar", isOn: model.showSizeInMenuBar) {
                 model.showSizeInMenuBar.toggle()
             }
@@ -252,6 +260,14 @@ private struct MenuDivider: View {
             .frame(height: 1)
             .padding(.horizontal, 9).padding(.vertical, 5)
     }
+}
+
+/// Closes the menu bar panel (the window that holds it).
+@MainActor func closePanel() {
+    for w in NSApp.windows where w.isVisible && w.className.contains("MenuBarExtra") {
+        w.orderOut(nil)
+    }
+    NSApp.keyWindow?.orderOut(nil)
 }
 
 /// Hover state as a tiny observable object (works without Xcode's SwiftUI macro plugins).

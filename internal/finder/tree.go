@@ -87,3 +87,18 @@ func fold(nodes []*Node, keep int, parent string) []*Node {
 	}
 	return append(nonEmpty[:keep], other)
 }
+
+// Folded returns a copy of the tree keeping only the `keep` biggest entries per level
+// (the rest merged into "other"), for display.
+func (n *Node) Folded(keep int) *Node {
+	if n == nil {
+		return nil
+	}
+	c := &Node{Name: n.Name, Path: n.Path, Size: n.Size}
+	var kids []*Node
+	for _, k := range n.Children {
+		kids = append(kids, k.Folded(keep))
+	}
+	c.Children = fold(kids, keep, n.Path)
+	return c
+}

@@ -26,10 +26,13 @@ var devDotFolders = []string{".npm", ".cargo", ".rustup", "go", ".gradle", ".m2"
 
 // Storage splits the disk into groups. Without Full Disk Access some protected folders
 // (other apps' containers, Mail, Messages) can't be measured and fall into "macOS & other".
-func Storage() []Group {
+func Storage() []Group { return StorageFrom(Tree(fsx.Home, 100000)) }
+
+// StorageFrom groups an already-measured home tree (built with a large `keep`, so nothing
+// is folded into "other").
+func StorageFrom(tree *Node) []Group {
 	free, total := fsx.DiskTotals()
 	used := total - free
-	tree := Tree(fsx.Home, 100000)
 
 	level1 := map[string]int64{}
 	level2 := map[string]int64{}
@@ -100,12 +103,9 @@ func Storage() []Group {
 		data = used - macos
 	}
 	rest := data - home - (apps - level1["Applications"]) - brew - sys
-	hint := "purgeable space and data macclean can't read"
+	hint := "Purgeable space and folders macOS protects"
 	if others := otherUsers(); len(others) > 0 {
-		hint = "other user accounts (" + strings.Join(others, ", ") + "), " + hint
-	}
-	if !fsx.HasFullDiskAccess() {
-		hint += "; Full Disk Access lets macclean measure more"
+		hint = "Other accounts (" + strings.Join(others, ", ") + "), purgeable and protected data"
 	}
 	groups = append(groups, Group{"Other accounts, protected & purgeable data", hint, max(rest, 0)})
 	sort.SliceStable(groups, func(i, j int) bool { return groups[i].Size > groups[j].Size })

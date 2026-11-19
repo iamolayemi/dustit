@@ -16,6 +16,7 @@ enum CLI {
     struct Failure: Error, LocalizedError {
         let message: String
         var errorDescription: String? { message }
+        var installHint: String { "macclean isn't installed. Install it with: brew install iamolayemi/tap/macclean" }
     }
 
     /// Runs macclean with arguments and returns stdout.
