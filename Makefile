@@ -40,5 +40,8 @@ menubar:
 	rm -rf "$(APP)" && mkdir -p "$(APP)/Contents/MacOS"
 	cp macos/DustIt/.build/release/DustIt "$(APP)/Contents/MacOS/"
 	cp macos/DustIt/Info.plist "$(APP)/Contents/"
+	mkdir -p "$(APP)/Contents/Resources" && rm -rf dist/AppIcon.iconset
+	macos/DustIt/.build/release/DustIt --iconset dist/AppIcon.iconset >/dev/null
+	iconutil -c icns dist/AppIcon.iconset -o "$(APP)/Contents/Resources/AppIcon.icns"
 	codesign --force --sign - "$(APP)"   # ad-hoc signature so macOS will run the local build
 	@echo "Built $(APP) — move it to /Applications and open it"

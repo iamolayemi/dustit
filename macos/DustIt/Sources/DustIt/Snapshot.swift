@@ -32,8 +32,33 @@ enum Snapshot {
         }
     }
 
+    /// The app icon: the broom glyph in white on a deep teal rounded square.
+    static func renderAppIcon(to path: String, size: CGFloat) {
+        let img = NSImage(size: NSSize(width: size, height: size), flipped: false) { rect in
+            let inset = rect.insetBy(dx: size * 0.06, dy: size * 0.06)
+            let bg = NSBezierPath(roundedRect: inset, xRadius: size * 0.2, yRadius: size * 0.2)
+            NSGradient(starting: NSColor(red: 0.16, green: 0.62, blue: 0.56, alpha: 1),
+                       ending: NSColor(red: 0.07, green: 0.36, blue: 0.40, alpha: 1))?.draw(in: bg, angle: -90)
+            let glyph = NSImage(size: Icon.size, flipped: true) { _ in Icon.draw(low: false); return true }
+            let white = NSImage(size: Icon.size, flipped: false) { r in
+                glyph.draw(in: r)
+                NSColor.white.set()
+                r.fill(using: .sourceAtop)
+                return true
+            }
+            let g = size * 0.56
+            white.draw(in: NSRect(x: (size - g) / 2, y: (size - g) / 2, width: g, height: g))
+            return true
+        }
+        if let tiff = img.tiffRepresentation, let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) {
+            try? png.write(to: URL(fileURLWithPath: path))
+            print(path)
+        }
+    }
+
     static func render(to dir: String) {
         renderIcon(to: dir)
+        renderAppIcon(to: "\(dir)/app-icon.png", size: 512)
         for scheme in [ColorScheme.light, .dark] {
             let view = PanelView()
                 .environmentObject(Model(sample: true))

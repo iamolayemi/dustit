@@ -9,6 +9,15 @@ struct DustItApp: App {
     init() {
         // `DustIt --snapshot <dir>` renders the panel with sample data (light + dark) and exits.
         let args = CommandLine.arguments
+        if let i = args.firstIndex(of: "--iconset"), i + 1 < args.count {
+            // `DustIt --iconset Foo.iconset` writes every size iconutil needs for the .icns.
+            try? FileManager.default.createDirectory(atPath: args[i + 1], withIntermediateDirectories: true)
+            for (pt, scale) in [(16, 1), (16, 2), (32, 1), (32, 2), (128, 1), (128, 2), (256, 1), (256, 2), (512, 1), (512, 2)] {
+                let name = scale == 1 ? "icon_\(pt)x\(pt).png" : "icon_\(pt)x\(pt)@2x.png"
+                Snapshot.renderAppIcon(to: "\(args[i + 1])/\(name)", size: CGFloat(pt * scale))
+            }
+            exit(0)
+        }
         if let i = args.firstIndex(of: "--snapshot"), i + 1 < args.count {
             Snapshot.render(to: args[i + 1])
             exit(0)

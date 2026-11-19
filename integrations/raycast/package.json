@@ -1,0 +1,30 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "dustit",
+  "title": "DustIt",
+  "description": "See what's using disk space, clean up safely and check what's slowing your Mac down, powered by the DustIt CLI.",
+  "icon": "icon.png",
+  "author": "iamolayemi",
+  "categories": ["System", "Developer Tools"],
+  "license": "MIT",
+  "commands": [
+    { "name": "disk-space", "title": "Disk Space", "subtitle": "DustIt", "description": "Where your space went and what can be cleaned.", "mode": "view" },
+    { "name": "clean-up", "title": "Clean Up Safely", "subtitle": "DustIt", "description": "Clean caches, logs and other files apps rebuild by themselves.", "mode": "no-view" },
+    { "name": "health-check", "title": "Health Check", "subtitle": "DustIt", "description": "What's slowing your Mac down right now.", "mode": "view" },
+    { "name": "what-grew", "title": "What Grew This Week", "subtitle": "DustIt", "description": "Folders and groups that grew since last week.", "mode": "view" }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.100.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "typescript": "^5.6.0"
+  },
+  "scripts": {
+    "build": "ray build -e dist",
+    "dev": "ray develop",
+    "lint": "ray lint",
+    "publish": "npx @raycast/api@latest publish"
+  }
+}
