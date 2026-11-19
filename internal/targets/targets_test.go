@@ -33,3 +33,13 @@ func TestSelect(t *testing.T) {
 		t.Error("--all must select every category")
 	}
 }
+
+func TestDisplayCmd(t *testing.T) {
+	got := displayCmd([]string{"sh", "-c", `git -C "$1" worktree prune && git -C "$1" gc --quiet`, "sh", "/r"})
+	if got != `git -C "/r" worktree prune && git -C "/r" gc --quiet` {
+		t.Errorf("got %q", got)
+	}
+	if displayCmd([]string{"brew", "uninstall", "x"}) != "brew uninstall x" {
+		t.Error("plain commands are joined")
+	}
+}

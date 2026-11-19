@@ -178,7 +178,7 @@ func Clean(r Result, o CleanOptions) (freed int64, failed int) {
 			if i < 10 {
 				line := "would remove " + fsx.Pretty(it.Path)
 				if len(it.Cmd) > 0 {
-					line = "would run " + joinArgs(it.Cmd)
+					line = "would run " + displayCmd(it.Cmd)
 				}
 				if it.Note != "" {
 					line += "  (" + it.Note + ")"
@@ -193,9 +193,16 @@ func Clean(r Result, o CleanOptions) (freed int64, failed int) {
 		var err error
 		switch {
 		case len(it.Cmd) > 0:
-			log("$ " + joinArgs(it.Cmd))
+			log("$ " + displayCmd(it.Cmd))
 			if err = sh.Shown(it.Cmd...); err == nil {
-				history.Log(history.Deleted, it.Path, "", it.Size)
+				// Commands like git gc or brctl evict free only part of the size: measure.
+				done := it.Size
+				if fsx.Exists(it.Path) {
+					done = max(it.Size-fsx.DiskUsage(it.Path).Bytes, 0)
+				}
+				history.Log(history.Deleted, it.Path, "", done)
+				freed += done
+				continue
 			}
 		case it.App:
 			err = fsx.TrashApp(it.Path)
