@@ -43,6 +43,17 @@ $ macclean scan
   you exclude in your config. Symlinks are never followed. Personal files go to the Trash.
 - **Single binary, no daemon, no telemetry.**
 
+## Menu bar app
+
+`macclean bar` lives in the menu bar: free space at a glance, what's safe to clean, what's slowing
+the Mac down, and one-click "clean safe categories". It's a small SwiftUI app on top of the CLI
+(`--json`), so all the safety rules stay in one place. Build it from source (needs the Xcode
+Command Line Tools):
+
+```bash
+make menubar && mv "dist/macclean bar.app" /Applications/
+```
+
 ## Install
 
 **Homebrew:**
@@ -86,9 +97,12 @@ macclean doctor        # why is my Mac slow?
 | `scan [-v] [--json]` | Read-only report of every category, plus Docker, Time Machine snapshots and big app data |
 | `clean` | Cleans the **safe** categories, asking before each. `--only a,b` picks categories; `--all` adds **review** ones; `-n` dry run; `-y` no prompts; `--trash` moves instead of deleting; `--notify` shows a notification |
 | `ui` | Full-screen picker: tick categories, look inside them, then clean |
+| `report [--open]` | One self-contained HTML page: treemap of your home folder, every category, the performance check |
+| `alert [--below 10%]` | Is free space below a threshold? Exit status 1 when it is; `--notify` for a notification |
 | `history [run-id]` / `undo [run-id]` | What was removed and when; put trashed items back |
-| `doctor [--fix] [--watch] [--json]` | Why the Mac is slow: CPU hogs, memory pressure and swap, disk, throttling, battery health, pending updates, Docker memory, startup agents, services. `--fix` offers the safe fixes; `--watch` is a live CPU/memory view |
+| `doctor [--fix] [--watch] [--json]` | Why the Mac is slow: CPU hogs, memory pressure and swap, disk, throttling, battery health, pending updates, Docker memory, Spotlight, browser memory, startup agents, services. `--fix` offers the safe fixes; `--watch` is a live CPU/memory view |
 | `schedule on\|off` | Clean safe categories daily or weekly with a notification (`--daily`, `--day fri`, `--at 21:30`) |
+| `schedule alert on\|off` | Notify when free space drops below a threshold (`--below 10%` or `20GB`, `--every 1h`); never deletes anything |
 | `config [edit\|check\|init\|path]` | Your settings: excludes, project folders, thresholds, custom categories. `check` finds syntax errors and typos |
 | `docker [--clean] [--volumes]` | What's inside Docker Desktop's disk image; prune it and wait for the file to shrink |
 | `projects [path] [--days 30] [--clean]` | Dependency/build folders in idle projects |
@@ -112,6 +126,7 @@ suggests category names for `--only`.
 | `stale-deps` | `node_modules`, `vendor`, `Pods`, `target`, `.venv`, `.next`… in projects idle for 30+ days |
 | `xcode-derived`, `xcode-device-support`, `simulator-caches`, `simulators-unavailable` | Xcode build data and simulators |
 | `npm-cache`, `yarn-cache`, `pnpm-store`, `bun-cache`, `gradle-cache`, `composer-cache`, `cargo-cache`, `homebrew` | Package manager caches |
+| `minikube-cache`, `cocoapods-specs`, `android-cache`, `gradle-daemon-logs` | minikube images, CocoaPods spec repos, Android build cache, Gradle daemon logs |
 | `ios-updates`, `mail-downloads` | iOS firmware downloads, Mail attachment copies |
 
 **Review:** may hold things you want. Only cleaned with `--only <id>` or `--all`.
@@ -122,6 +137,10 @@ suggests category names for `--only`.
 | `old-files`, `duplicates`, `old-downloads` | Big files untouched for a year, extra copies of identical files, old downloads (all to Trash) |
 | `jetbrains-old`, `pnpm-old-stores`, `iac-plugins`, `go-modcache` | Old IDE versions, old pnpm stores, sst/Pulumi/Terraform plugins, Go module cache |
 | `ai-models`, `macos-installers` | Ollama / LM Studio / Hugging Face models, "Install macOS" apps |
+| `git-gc` | Repos whose `.git` is over 500 MB: `git worktree prune` + `git gc` (history and reflog are kept) |
+| `dev-vms` | minikube, kind, k3d, Colima and Lima clusters/VMs (deleting one removes what's inside) |
+| `icloud-evict` | iCloud Drive files ≥ 10 MB unchanged for 90 days: the local copy goes, the file stays in iCloud |
+| `maven-repo` | `~/.m2/repository` |
 | `docker`, `xcode-archives`, `simulator-devices`, `ios-backups` | Docker prune, Xcode archives, simulator devices, device backups |
 
 ### How macclean decides

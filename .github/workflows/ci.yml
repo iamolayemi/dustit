@@ -50,6 +50,14 @@ jobs:
         with:
           version: v2.5
 
+  menubar:
+    name: Menu bar app builds
+    runs-on: macos-15-intel
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - run: make menubar
+
   goreleaser-check:
     # Needs a Mac: the release runs macclean to generate man pages and completions.
     runs-on: macos-15-intel

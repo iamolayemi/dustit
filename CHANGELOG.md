@@ -19,6 +19,13 @@ and this project uses [Semantic Versioning](https://semver.org/).
 - `ui`: interactive full-screen picker.
 - `--json` for `scan`, `doctor`, `list` and `history`.
 - Man pages and shell completions in releases and the Homebrew cask.
+- `report`: self-contained HTML report with a treemap of the home folder, categories and doctor findings.
+- `alert` and `schedule alert`: notification when free space runs low.
+- `git-gc`, `dev-vms`, `icloud-evict`, `maven-repo`, `minikube-cache`, `cocoapods-specs`, `android-cache`
+  and `gradle-daemon-logs` categories.
+- `doctor` checks Spotlight indexing and browser memory.
+- macclean bar: a menu bar app (`make menubar`).
+- End-to-end tests against a fake home folder and fuzzing of the delete guard in CI.
 
 ### Fixed
 - `dot-cache` no longer removes corepack's pnpm/yarn binaries.

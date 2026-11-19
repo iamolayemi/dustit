@@ -6,3 +6,4 @@ coverage.*
 .DS_Store
 /generated/
 /macclean-report*.html
+/macos/MacCleanBar/.build/

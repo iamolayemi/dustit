@@ -6,7 +6,7 @@ Thanks for helping! macclean deletes files, so changes are held to a high bar fo
 
 ```bash
 git clone https://github.com/iamolayemi/macclean && cd macclean
-make test     # go vet + tests
+make test     # go vet + unit and end-to-end tests (e2e/ runs the real binary on a fake home)
 make lint     # golangci-lint
 make build    # ./macclean
 make docs     # man pages + completions into generated/
@@ -26,7 +26,10 @@ You need Go 1.24+ and macOS: the code uses Darwin-specific file metadata.
 | `internal/doctor` | Read-only performance checks and their safe fixes |
 | `internal/history` | The removal log behind `history` and `undo` |
 | `internal/config` | `~/.config/macclean/config.yaml`: loading and `config check` |
-| `internal/schedule` | The launchd agent for scheduled runs |
+| `internal/schedule` | The launchd agents for scheduled runs and low-disk alerts |
+| `internal/report` | The HTML report and its treemap |
+| `e2e/` | End-to-end tests: the real binary against a throwaway home folder |
+| `macos/MacCleanBar` | The SwiftUI menu bar app (`make menubar`) |
 | `internal/ui`, `internal/sh` | Styling, prompts, running external commands |
 
 ## Adding a cleanup category
@@ -36,7 +39,10 @@ You need Go 1.24+ and macOS: the code uses Darwin-specific file metadata.
    `internal/finder`), or `CleanCmd` when a tool has its own cleanup command.
 3. Choose `Risk: Safe` only if the data is regenerated automatically with no user action
    beyond a reinstall. Anything personal is `Review`, and if it's a user's own file, `ToTrash: true`.
-4. Add a test, and run `macclean scan -v` and `macclean clean --only <id> -n` on your machine.
+4. Add a test (an `e2e/` case if it deletes files), and run `macclean scan -v` and
+   `macclean clean --only <id> -n` on your machine.
+5. Changing `fsx.CheckDeletable`? Run the fuzzer for a while:
+   `go test ./internal/fsx -run '^$' -fuzz FuzzCheckDeletable -fuzztime 2m`
 
 ## Safety rules (please don't break these)
 
