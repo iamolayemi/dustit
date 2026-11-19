@@ -31,6 +31,7 @@ type jsonCategory struct {
 	UpTo        bool       `json:"size_is_upper_bound,omitempty"`
 	ItemCount   int        `json:"item_count"`
 	Unavailable string     `json:"unavailable,omitempty"`
+	KeptRunning int        `json:"kept_because_app_is_open,omitempty"`
 	Items       []jsonItem `json:"items,omitempty"`
 }
 
@@ -48,7 +49,7 @@ func scanJSON(results []targets.Result, insights []finder.Insight, free int64, w
 	out := jsonScan{FreeBytes: free, SafeBytes: safe, ReviewBytes: review, Unreadable: denied, Insights: insights}
 	for _, r := range results {
 		c := jsonCategory{ID: r.T.ID, Name: r.T.Name, Description: r.T.Desc, Risk: r.T.Risk.String(), Bytes: r.Bytes,
-			SizeKnown: r.SizeKnown(), UpTo: r.T.UpTo, ItemCount: len(r.Items), Unavailable: r.Unavailable}
+			SizeKnown: r.SizeKnown(), UpTo: r.T.UpTo, ItemCount: len(r.Items), Unavailable: r.Unavailable, KeptRunning: r.KeptRunning}
 		if withItems {
 			for _, it := range r.Items {
 				c.Items = append(c.Items, jsonItem{it.Path, it.Size, it.Note})

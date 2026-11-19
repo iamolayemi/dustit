@@ -4,6 +4,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+
+	"github.com/iamolayemi/macclean/internal/fsx"
 )
 
 func TestBigGitRepos(t *testing.T) {
@@ -25,5 +27,21 @@ func TestBigGitRepos(t *testing.T) {
 	}
 	if len(got[0].Cmd) == 0 || got[0].Cmd[len(got[0].Cmd)-1] != filepath.Join(root, "big") {
 		t.Errorf("gc must run on the repo: %v", got[0].Cmd)
+	}
+}
+
+func TestBelongsToRunningApp(t *testing.T) {
+	run := map[string]bool{"com.tinyspeck.slackmacgap": true, "code": true, "com.google.chrome": true}
+	for p, want := range map[string]bool{
+		fsx.H("Library/Caches/com.tinyspeck.slackmacgap"):          true,
+		fsx.H("Library/Caches/com.tinyspeck.slackmacgap.ShipIt"):   true,
+		fsx.H("Library/Application Support/Code/Cache"):            true,
+		fsx.H("Library/Application Support/Google/Chrome/Default"): true,
+		fsx.H("Library/Caches/com.spotify.client"):                 false,
+		fsx.H("Library/Application Support/Postman/Cache"):         false,
+	} {
+		if got := BelongsToRunningApp(p, run); got != want {
+			t.Errorf("%s: got %v, want %v", fsx.Pretty(p), got, want)
+		}
 	}
 }

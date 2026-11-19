@@ -21,6 +21,7 @@ type Result struct {
 	Bytes       int64
 	Denied      int
 	Unavailable string // why the target can't run here (e.g. tool not installed)
+	KeptRunning int    // items left alone because their app is open
 }
 
 // SizeKnown is false for command targets whose effect can't be measured up front.
@@ -74,6 +75,10 @@ func Scan(t *Target) Result {
 	}
 	var items []finder.Item
 	for _, dir := range t.Dirs {
+		if !fsx.MayRead(dir) {
+			r.Denied++
+			continue
+		}
 		entries, err := os.ReadDir(dir)
 		if err != nil {
 			if errors.Is(err, fs.ErrPermission) {
@@ -90,9 +95,17 @@ func Scan(t *Target) Result {
 	if t.Find != nil {
 		items = append(items, t.Find()...)
 	}
+	var run map[string]bool
+	if t.SkipRunning {
+		run = finder.RunningApps()
+	}
 	kept := items[:0]
 	for _, it := range items {
 		if fsx.Excluded(it.Path) {
+			continue
+		}
+		if run != nil && finder.BelongsToRunningApp(it.Path, run) {
+			r.KeptRunning++
 			continue
 		}
 		if it.Age.IsZero() {

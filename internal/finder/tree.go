@@ -35,6 +35,9 @@ func Tree(root string, keep int) *Node {
 				}
 				return nil
 			}
+			if d.IsDir() && !fsx.MayRead(q) {
+				return fs.SkipDir
+			}
 			var st syscall.Stat_t
 			if syscall.Lstat(q, &st) != nil {
 				return nil

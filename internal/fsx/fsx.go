@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -72,6 +73,41 @@ func Exists(p string) bool { _, err := os.Lstat(p); return err == nil }
 // IsDir reports whether p is a directory (following symlinks).
 func IsDir(p string) bool { fi, err := os.Stat(p); return err == nil && fi.IsDir() }
 
+// Other apps' private data (sandbox containers) is protected by macOS: reading inside it
+// without Full Disk Access makes macOS show a "tried to access data from other apps"
+// warning. macclean only looks inside when it has Full Disk Access.
+var (
+	fdaOnce sync.Once
+	fda     bool
+)
+
+// HasFullDiskAccess reports whether this process may read protected user data. It probes
+// folders that fail silently (no warning) when access is missing.
+func HasFullDiskAccess() bool {
+	fdaOnce.Do(func() {
+		for _, p := range []string{H("Library/Safari"), H("Library/Application Support/com.apple.TCC")} {
+			if _, err := os.ReadDir(p); err == nil {
+				fda = true
+				return
+			}
+		}
+	})
+	return fda
+}
+
+// InOtherAppData reports whether p is inside another app's sandbox container.
+func InOtherAppData(p string) bool {
+	for _, base := range []string{H("Library/Containers"), H("Library/Group Containers")} {
+		if strings.HasPrefix(p, base+"/") {
+			return true
+		}
+	}
+	return false
+}
+
+// MayRead is false for other apps' container contents when macOS hasn't granted Full Disk Access.
+func MayRead(p string) bool { return !InOtherAppData(p) || HasFullDiskAccess() }
+
 // Usage is the result of measuring a path.
 type Usage struct {
 	Bytes  int64 // allocated on disk, like du
@@ -82,6 +118,9 @@ type Usage struct {
 // DiskUsage measures a file or folder tree without following symlinks.
 func DiskUsage(path string) Usage {
 	var u Usage
+	if !MayRead(path) {
+		return Usage{Denied: 1}
+	}
 	var st syscall.Stat_t
 	if err := syscall.Lstat(path, &st); err != nil {
 		if errors.Is(err, fs.ErrPermission) {
@@ -101,6 +140,10 @@ func DiskUsage(path string) Usage {
 				return fs.SkipDir
 			}
 			return nil
+		}
+		if d.IsDir() && p != path && !MayRead(p) {
+			u.Denied++
+			return fs.SkipDir
 		}
 		var s syscall.Stat_t
 		if syscall.Lstat(p, &s) == nil {
@@ -243,6 +286,9 @@ func Remove(p string, toTrash bool) error { return RemoveSized(p, toTrash, 0) }
 func RemoveSized(p string, toTrash bool, size int64) error {
 	if err := CheckDeletable(p); err != nil {
 		return err
+	}
+	if !MayRead(p) {
+		return fmt.Errorf("skipped %s: another app's data — give your terminal Full Disk Access to remove it", Pretty(p))
 	}
 	if toTrash {
 		dst, err := moveToTrash(p)

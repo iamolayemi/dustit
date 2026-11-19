@@ -18,6 +18,9 @@ func RawPath() string {
 
 // RawSizes returns (space used on disk, maximum size) of the sparse disk image.
 func RawSizes() (used, limit int64) {
+	if !fsx.MayRead(RawPath()) {
+		return 0, 0
+	}
 	var st syscall.Stat_t
 	if syscall.Lstat(RawPath(), &st) != nil {
 		return 0, 0

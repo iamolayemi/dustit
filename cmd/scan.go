@@ -93,7 +93,11 @@ func printResults(results []targets.Result, verbose bool) {
 			if len(r.Items) == 0 {
 				continue
 			}
-			fmt.Printf("\n%s %s\n", ui.Bold.Render(r.T.ID), ui.Dim.Render(ui.Human(r.Bytes)))
+			kept := ""
+			if r.KeptRunning > 0 {
+				kept = fmt.Sprintf("  (%d left alone: app is open)", r.KeptRunning)
+			}
+			fmt.Printf("\n%s %s%s\n", ui.Bold.Render(r.T.ID), ui.Dim.Render(ui.Human(r.Bytes)), ui.Dim.Render(kept))
 			for i, it := range r.Items {
 				if i == 8 {
 					ui.Hint("      … and %d more", len(r.Items)-8)

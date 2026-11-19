@@ -43,6 +43,7 @@ type Target struct {
 	PathCmd        []string             // prints a folder to measure (for CleanCmd targets)
 	CleanCmd       []string             // run this instead of deleting
 	UpTo           bool                 // measured size is an upper bound
+	SkipRunning    bool                 // leave items that belong to an app that is open
 }
 
 var h = fsx.H
@@ -98,8 +99,8 @@ func custom(cfg config.Config) []*Target {
 
 func builtin(cfg config.Config) []*Target {
 	return []*Target{
-		{ID: "user-caches", Name: "App caches", Risk: Safe,
-			Desc:    "~/Library/Caches — apps rebuild these automatically",
+		{ID: "user-caches", Name: "App caches", Risk: Safe, SkipRunning: true,
+			Desc:    "~/Library/Caches — apps rebuild these automatically; caches of apps that are open are left alone",
 			Dirs:    []string{h("Library/Caches")},
 			Exclude: []string{"Homebrew", "Yarn", "com.apple.bird", "CloudKit", "com.apple.HomeKit", "FamilyCircle", "com.apple.containermanagerd"}},
 		{ID: "user-logs", Name: "Logs & crash reports", Risk: Safe,
@@ -108,8 +109,8 @@ func builtin(cfg config.Config) []*Target {
 		{ID: "trash", Name: "Trash", Risk: Safe,
 			Desc: "Everything currently in your Trash",
 			Dirs: []string{h(".Trash")}},
-		{ID: "electron-caches", Name: "Electron & browser app caches", Risk: Safe,
-			Desc: "Cache/GPUCache/Code Cache/Service Worker caches of VS Code, Slack, Postman, Figma, Chrome… (quit those apps first)",
+		{ID: "electron-caches", Name: "Electron & browser app caches", Risk: Safe, SkipRunning: true,
+			Desc: "Cache/GPUCache/Code Cache/Service Worker caches of VS Code, Slack, Postman, Figma, Chrome…; apps that are open are left alone",
 			Find: finder.ElectronCaches},
 		{ID: "dot-cache", Name: "~/.cache tool caches", Risk: Safe,
 			Desc:    "XDG caches (puppeteer browsers, copilot, pkg, uv…); AI model caches and corepack's pnpm/yarn are kept",
