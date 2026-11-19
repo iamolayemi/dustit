@@ -5,65 +5,55 @@ and this project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-### Added
-- `doctor`: diagnose a slow Mac (CPU hogs, memory pressure and swap, disk, throttling, battery health,
-  pending updates, Docker memory, startup agents, services) with safe `--fix` actions and `--watch`.
-- `history` and `undo`: every removal is logged; items moved to the Trash can be put back.
-- `old-versions`: old Node, Python, Ruby, Rust, Go, Terraform, Java, Flutter, Gradle, Android SDK,
-  asdf/mise tools, unused Homebrew versioned formulae and extra Xcode copies. Keeps the default, the
-  newest and anything a project pins.
-- `ai-models`, `macos-installers` and `pnpm-old-stores` categories.
-- Config file (`~/.config/dustit/config.yaml`) with excludes, project folders, thresholds, disabled
-  and custom categories; `config edit`, `config check`, `config init`, `config path`.
-- `schedule`: clean safe categories daily or weekly with a notification.
-- `ui`: interactive full-screen picker.
-- `--json` for `scan`, `doctor`, `list` and `history`.
-- Man pages and shell completions in releases and the Homebrew cask.
-- `report`: self-contained HTML report with a treemap of the home folder, categories and doctor findings.
-- `alert` and `schedule alert`: notification when free space runs low.
-- `git-gc`, `dev-vms`, `icloud-evict`, `maven-repo`, `minikube-cache`, `cocoapods-specs`, `android-cache`
-  and `gradle-daemon-logs` categories.
-- `doctor` checks Spotlight indexing and browser memory.
-- DustIt: a menu bar app (`make menubar`).
-- End-to-end tests against a fake home folder and fuzzing of the delete guard in CI.
-- `storage`: disk usage in plain groups with app owners; the report leads with it.
-- `startup`: launch agents and daemons with owners and state, orphans first; disable, enable, remove orphans.
-- `privacy`: read-only security and privacy check with links to System Settings.
-- `installers`, `screenshots`, `large-videos`, `editor-orphans`, `ai-tool-data`, `agent-worktrees`
-  and `git-branches` categories; `duplicate_folders` setting.
-- Caches of apps that are open are left alone.
+## [0.1.0] - 2026-11-19
 
-- `here`: everything one project uses (dependencies, build output, git, Docker Compose), with cleanup.
-- `explore`: full-screen folder browser.
-- `growth` and `snapshot`: a disk timeline showing what grew; `storage` and `report` record snapshots too.
-- `watch` and `schedule watch`: alerts for runaway processes, sudden free-space drops and fast-growing folders.
+The first release of DustIt: a careful, open-source disk cleaner and slowdown doctor for macOS,
+made for developers.
+
+### Cleaning
+- `scan` and `clean` across 49 categories: app, browser and tool caches, logs, the Trash, Xcode and
+  simulators, package-manager caches (npm, pnpm, Yarn, Bun, Cargo, Gradle, Maven, Composer, CocoaPods,
+  Homebrew), dependency folders in idle projects, old language and SDK versions, old JetBrains IDEs,
+  local AI models and AI coding-tool sessions, agent worktrees, merged git branches, big git repos,
+  dev VMs, iCloud downloads, installers, screenshots, large videos, old files and duplicates.
+- Safe and review categories: safe ones are rebuilt automatically; review ones are only cleaned when
+  named, and personal files always go to the Trash.
+- Caches of apps that are open are left alone; old-version cleanup keeps your default, the newest and
+  anything a project pins.
+- `ui` (interactive picker), `here` (one project's footprint), `explore` (folder browser), `similar`
+  (near-duplicate photos), `docker` (prune Docker Desktop and shrink its disk image), `projects`,
+  `dupes`, `old`, `large`, `top`, `apps --uninstall`, `leftovers`.
+- `history` and `undo`: every removal is logged; anything moved to the Trash can be put back.
+
+### Understanding the disk
+- `storage`: disk usage in plain groups, with the app that owns each data folder.
+- `report`: a self-contained HTML report with a storage bar and a map of the home folder.
+- `growth` and `snapshot`: a timeline that shows what grew and what shrank.
+- `attachments`: Messages and Mail attachments by year (read-only).
 - Regrowth awareness: scan and clean say when a cache refills within days.
-- `similar`: near-duplicate photos by perceptual hash (JPEG, PNG, GIF, HEIC, TIFF, WebP).
-- `attachments`: read-only report of Messages and Mail attachments by year.
-- `mcp`: Model Context Protocol server for AI agents.
-- Raycast extension, `dustit://` links in the menu bar app, and an app icon.
 
-### Changed
-- DustIt redesigned to look and behave like a native macOS menu; its actions no longer need
-  the Automation permission.
-- The HTML report has a storage bar, a calmer map and the exact command for every category.
+### Health and security
+- `doctor`: CPU hogs, memory pressure, disk, throttling, battery, updates, Docker, Spotlight, browsers,
+  startup items and services, with safe `--fix` actions and a `--watch` live view.
+- `watch` and `schedule watch`: notifications for runaway processes, sudden free-space drops and
+  fast-growing folders.
+- `startup`: every background item with its owner and state, orphans first.
+- `privacy`: a read-only check of FileVault, firewall, Gatekeeper, SIP, updates, screen lock, sharing,
+  AirDrop, Find My and login settings.
 
-### Fixed
-- Other apps' private data is only read with Full Disk Access, so macOS no longer shows
-  "tried to access data from other apps" warnings.
+### Automation and integrations
+- `schedule` (weekly or daily clean-ups), `alert` and `schedule alert` (low disk space).
+- `--json` output; `mcp`, a Model Context Protocol server for AI agents.
+- Config file with excludes, project folders, thresholds and custom categories; `config edit` and
+  `config check`.
+- DustIt menu bar app with `dustit://` links for Shortcuts, and a Raycast extension.
+- Man pages and shell completions; Homebrew install with `brew install iamolayemi/tap/dustit`.
 
-### Fixed
-- `dot-cache` no longer removes corepack's pnpm/yarn binaries.
-- Categories whose tool command fails show "failed" instead of 0 B.
-- `dupes` keeps the copy that was created first.
+### Safety
+- One delete guard for every removal: nothing outside your home folder, no top-level or protected
+  folders (Keychains, Preferences, Mail, Messages, `~/.ssh`), never through symlinks, and never what
+  you exclude. Fuzzed and covered by end-to-end tests against a fake home folder.
+- Other apps' private data is only read with Full Disk Access, so macOS shows no access warnings.
 
-## [0.1.0]
-
-### Added
-- `scan` and `clean` with 30 categories across caches, logs, developer tools, personal files and Docker.
-- `stale-deps`: dependency/build folders in projects idle for 30+ days.
-- `old-files` and `duplicates`: personal-file categories, moved to Trash.
-- `docker`: inspect and prune Docker Desktop's disk image and wait for it to shrink.
-- `projects`, `dupes`, `old`, `large`, `top`, `apps`, `leftovers` finder commands.
-- Shell completion, including category names for `clean --only`.
-- Homebrew install: `brew install iamolayemi/tap/dustit`.
+[Unreleased]: https://github.com/iamolayemi/dustit/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/iamolayemi/dustit/releases/tag/v0.1.0
