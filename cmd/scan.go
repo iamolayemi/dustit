@@ -89,13 +89,17 @@ func printResults(results []targets.Result, verbose bool) {
 	}))
 
 	if verbose {
+		regrow := targets.Regrowths(results)
 		for _, r := range results {
 			if len(r.Items) == 0 {
 				continue
 			}
 			kept := ""
+			if g, ok := regrow[r.T.ID]; ok && g.Fast {
+				kept += "  (" + g.Describe(ui.Human) + ")"
+			}
 			if r.KeptRunning > 0 {
-				kept = fmt.Sprintf("  (%d left alone: app is open)", r.KeptRunning)
+				kept += fmt.Sprintf("  (%d left alone: app is open)", r.KeptRunning)
 			}
 			fmt.Printf("\n%s %s%s\n", ui.Bold.Render(r.T.ID), ui.Dim.Render(ui.Human(r.Bytes)), ui.Dim.Render(kept))
 			for i, it := range r.Items {

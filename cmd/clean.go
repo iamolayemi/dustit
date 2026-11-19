@@ -40,6 +40,7 @@ func newCleanCmd() *cobra.Command {
 			}
 
 			before := fsx.FreeSpace()
+			regrow := targets.Regrowths(results)
 			var total int64
 			trashed := false
 			for _, r := range results {
@@ -54,6 +55,9 @@ func newCleanCmd() *cobra.Command {
 					size = "up to " + size
 				}
 				q := fmt.Sprintf("Clean %s (%s)?", ui.Bold.Render(r.T.Name), size)
+				if g, ok := regrow[r.T.ID]; ok && g.Fast {
+					q = fmt.Sprintf("Clean %s (%s, %s)?", ui.Bold.Render(r.T.Name), size, ui.Yellow.Render(g.Describe(ui.Human)))
+				}
 				if r.T.Risk == targets.Review {
 					q = ui.Yellow.Render("[review] ") + q + "\n  " + ui.Dim.Render(r.T.Desc) + "\n "
 				}
