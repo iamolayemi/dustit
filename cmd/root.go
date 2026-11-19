@@ -22,7 +22,7 @@ func newRootCmd() *cobra.Command {
 	var noColor bool
 	root := &cobra.Command{
 		Use:   "macclean",
-		Short: "Deep-clean your Mac and free disk space, safely",
+		Short: "Deep-clean your Mac, free disk space and find what slows it down",
 		Long: `macclean finds caches, logs, stale project dependencies, old and duplicate files,
 leftovers from deleted apps and unused Docker data, and removes them when you say so.
 
@@ -46,7 +46,11 @@ Nothing is deleted without asking unless you pass --yes. Start with:
 	root.AddGroup(
 		&cobra.Group{ID: "clean", Title: "Clean up:"},
 		&cobra.Group{ID: "find", Title: "Find what uses space:"},
+		&cobra.Group{ID: "speed", Title: "Speed:"},
 	)
+	doctorCmd := newDoctorCmd()
+	doctorCmd.GroupID = "speed"
+	root.AddCommand(doctorCmd)
 	for _, c := range []*cobra.Command{newScanCmd(), newCleanCmd(), newListCmd(), newDockerCmd()} {
 		c.GroupID = "clean"
 		root.AddCommand(c)

@@ -5,6 +5,9 @@ and this project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- `doctor`: diagnose a slow Mac (CPU hogs, memory pressure and swap, disk, throttling, startup agents, services) with safe `--fix` actions.
+
 ## [0.1.0]
 
 ### Added

@@ -5,7 +5,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/iamolayemi/macclean)](https://goreportcard.com/report/github.com/iamolayemi/macclean)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**A careful, open-source disk cleaner for macOS, made for developers.**
+**A careful, open-source disk cleaner and slowdown doctor for macOS, made for developers.**
 
 macclean finds what is eating your disk (caches, logs, `node_modules` in projects you
 abandoned months ago, old IDE versions, duplicate files, leftovers from deleted apps,
@@ -26,6 +26,24 @@ $ macclean scan
 
   Safe to reclaim: 56.3 GB    Needs review: 33.5 GB
 ```
+
+### Why is my Mac slow?
+
+```text
+$ macclean doctor
+✗ CPU load: 22.8 tasks waiting on 8 cores (5-min average) — 3× more work than the CPU can run
+      177%  WhatsApp                     open for 10h 56m
+       76%  mysqld                       open for 2d 17h
+    → mysqld is using 76% CPU and has been running 2d 17h. A service this busy is often stuck
+      on a long query or leftover job. Restart it: brew services restart mysql@9.7
+
+! Memory: 17.2 GB RAM, 13.7 GB swap in use — memory pressure is elevated
+✓ Temperature: no throttling
+```
+
+macclean doesn't "clean RAM" or kill apps behind your back. macOS manages memory itself, and
+purging it only makes apps slower while they reload. Instead, `doctor` tells you which process is
+actually responsible and what to do about it.
 
 ## Why macclean
 
@@ -90,6 +108,7 @@ macclean clean --only stale-deps,old-files
 | `clean` | Cleans the **safe** categories, asking before each. `--only a,b` picks categories; `--all` adds **review** ones; `-n` is a dry run; `-y` skips prompts; `--trash` moves instead of deleting |
 | `list` | Every category and what it removes |
 | `docker [--clean] [--volumes]` | What's inside Docker Desktop's disk image. `--clean` prunes containers, images, build cache and networks, then waits for the image file to shrink. Volumes are only offered with `--volumes` |
+| `doctor [--fix]` | Diagnoses why the Mac feels slow: CPU load and the processes behind it, memory pressure and swap, disk space, thermal throttling, uptime, broken startup agents, Homebrew services and snapshots, with a specific fix for each. `--fix` offers the safe ones (restart a stuck Homebrew service, remove broken startup agents), asking first |
 | `projects [path] [--days 30] [--clean]` | Dependency/build folders in projects untouched for N days |
 | `dupes [path] [--min 1MB] [--delete]` | Duplicate files by content; you pick which copy to keep |
 | `old [path] [--days 180] [--delete]` | Old items in a folder (default `~/Downloads`) |
