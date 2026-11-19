@@ -2,11 +2,13 @@ package cmd
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/spf13/cobra"
 
 	"github.com/iamolayemi/dustit/internal/finder"
 	"github.com/iamolayemi/dustit/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/timeline"
 	"github.com/iamolayemi/dustit/internal/ui"
 )
 
@@ -23,6 +25,9 @@ and flags folders whose app is no longer installed.`,
 		RunE: func(*cobra.Command, []string) error {
 			stop := ui.Spin("Measuring your disk… (read-only, about a minute)")
 			groups := finder.Storage()
+			if finder.LastTree != nil {
+				timeline.SaveIfStale(timeline.FromTree(finder.LastTree), 6*time.Hour)
+			}
 			var owned []finder.OwnedFolder
 			if apps {
 				owned = finder.AppDataOwners(20)

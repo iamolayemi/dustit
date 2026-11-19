@@ -134,3 +134,73 @@ func ShouldNotify(gap time.Duration) bool {
 	_ = os.WriteFile(state, []byte(time.Now().Format(time.RFC3339)), 0o644)
 	return true
 }
+
+// WatchLabel is the launchd label of the background watcher.
+const WatchLabel = Label + ".watch"
+
+// WatchPlistPath is where the watcher agent lives.
+func WatchPlistPath() string {
+	return filepath.Join(home(), "Library", "LaunchAgents", WatchLabel+".plist")
+}
+
+var intervalTmpl = template.Must(template.New("interval").Parse(`<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>{{.Label}}</string>
+	<key>ProgramArguments</key>
+	<array>
+{{- range .Args}}
+		<string>{{.}}</string>
+{{- end}}
+	</array>
+	<key>StartInterval</key>
+	<integer>{{.Seconds}}</integer>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>LowPriorityIO</key>
+	<true/>
+	<key>Nice</key>
+	<integer>15</integer>
+	<key>StandardErrorPath</key>
+	<string>{{.Log}}</string>
+</dict>
+</plist>
+`))
+
+// WatchPlist renders the watcher agent, which runs "dustit watch --notify" every interval.
+func WatchPlist(binary string, every time.Duration) (string, error) {
+	if binary == "" || every < time.Minute {
+		return "", fmt.Errorf("watch needs a binary and an interval of at least a minute")
+	}
+	var args []string
+	for _, a := range []string{binary, "watch", "--notify", "--no-color"} {
+		args = append(args, xmlEscape(a))
+	}
+	var b bytes.Buffer
+	err := intervalTmpl.Execute(&b, map[string]any{"Label": WatchLabel, "Args": args, "Seconds": int(every.Seconds()), "Log": xmlEscape(LogPath())})
+	return b.String(), err
+}
+
+// InstallWatch writes and loads the watcher agent.
+func InstallWatch(binary string, every time.Duration) error {
+	content, err := WatchPlist(binary, every)
+	if err != nil {
+		return err
+	}
+	return install(WatchPlistPath(), content)
+}
+
+// RemoveWatch unloads and deletes the watcher agent.
+func RemoveWatch() error { return uninstall(WatchPlistPath()) }
+
+// WatchInstalled reports whether the watcher agent is installed, and its interval.
+func WatchInstalled() (time.Duration, bool) {
+	secs, err := exec.Command("plutil", "-extract", "StartInterval", "raw", "-o", "-", WatchPlistPath()).Output()
+	if err != nil {
+		return 0, false
+	}
+	n, _ := strconv.Atoi(strings.TrimSpace(string(secs)))
+	return time.Duration(n) * time.Second, true
+}

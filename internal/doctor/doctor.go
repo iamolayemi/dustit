@@ -105,6 +105,9 @@ func cores() int {
 	return n
 }
 
+// Processes lists running processes (excluding this one and ps).
+func Processes() []Process { return processes() }
+
 func processes() []Process {
 	out, err := sh.Quiet("ps", "-Ao", "pid=,pcpu=,rss=,etime=,comm=")
 	if err != nil {

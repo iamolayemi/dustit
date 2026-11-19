@@ -26,7 +26,13 @@ var devDotFolders = []string{".npm", ".cargo", ".rustup", "go", ".gradle", ".m2"
 
 // Storage splits the disk into groups. Without Full Disk Access some protected folders
 // (other apps' containers, Mail, Messages) can't be measured and fall into "macOS & other".
-func Storage() []Group { return StorageFrom(Tree(fsx.Home, 100000)) }
+func Storage() []Group {
+	LastTree = Tree(fsx.Home, 100000)
+	return StorageFrom(LastTree)
+}
+
+// LastTree is the home tree measured by the most recent Storage call (reused for snapshots).
+var LastTree *Node
 
 // StorageFrom groups an already-measured home tree (built with a large `keep`, so nothing
 // is folded into "other").

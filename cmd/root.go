@@ -71,7 +71,7 @@ Nothing is deleted without asking unless you pass --yes. Start with:
 		c.GroupID = "find"
 		root.AddCommand(c)
 	}
-	for _, c := range []*cobra.Command{newDoctorCmd(), newPrivacyCmd()} {
+	for _, c := range []*cobra.Command{newDoctorCmd(), newPrivacyCmd(), newWatchCmd()} {
 		c.GroupID = "speed"
 		root.AddCommand(c)
 	}

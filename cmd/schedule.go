@@ -106,7 +106,7 @@ default set leaves out dependency folders, the Trash and caches of apps you may 
 			return nil
 		},
 	}
-	c.AddCommand(on, off, newScheduleAlertCmd())
+	c.AddCommand(on, off, newScheduleAlertCmd(), newScheduleWatchCmd())
 	return c
 }
 
@@ -218,6 +218,9 @@ func showSchedule() {
 	defer func() {
 		if b, e, ok := schedule.AlertInstalled(); ok {
 			fmt.Printf("Low-disk alert: below %s, checked every %s\n", b, e)
+		}
+		if e, ok := schedule.WatchInstalled(); ok {
+			fmt.Printf("Background watch: every %s\n", e)
 		}
 	}()
 	st := schedule.Current()

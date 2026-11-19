@@ -16,6 +16,7 @@ import (
 	"github.com/iamolayemi/dustit/internal/fsx"
 	"github.com/iamolayemi/dustit/internal/report"
 	"github.com/iamolayemi/dustit/internal/targets"
+	"github.com/iamolayemi/dustit/internal/timeline"
 	"github.com/iamolayemi/dustit/internal/ui"
 )
 
@@ -60,6 +61,7 @@ of your home folder, every cleanup category and the doctor's findings. Nothing i
 			d := report.Data{Generated: time.Now(), Version: version, Host: strings.TrimSuffix(host, ".local"), Free: free, Total: total,
 				Safe: safe, Review: review, Human: ui.Human}
 			if tree != nil {
+				timeline.SaveIfStale(timeline.FromTree(tree), 6*time.Hour)
 				d.Groups = finder.StorageFrom(tree)
 				d.Tree = tree.Folded(12)
 			}
