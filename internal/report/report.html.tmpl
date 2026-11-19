@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>macclean report</title>
+<style>
+  :root { --bg:#fbfbfa; --fg:#1d1d1f; --muted:#6e6e73; --card:#fff; --line:#e5e5ea; --safe:#2e8b57; --review:#b7791f; --bad:#c0392b; --info:#2c6fbb; --bar:#4e79a7; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#161618; --fg:#f2f2f7; --muted:#98989f; --card:#1f1f22; --line:#33333a; --safe:#4cc38a; --review:#e3a944; --bad:#ff6b5e; --info:#64a8ff; --bar:#6c9bd2; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif; }
+  main { max-width:1080px; margin:0 auto; padding:32px 16px 64px; }
+  h1 { font-size:28px; margin:0 0 4px; } h2 { font-size:19px; margin:40px 0 12px; }
+  .muted { color:var(--muted); }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin-top:20px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; }
+  .card .n { font-size:26px; font-weight:650; font-variant-numeric:tabular-nums; }
+  .safe { color:var(--safe); } .review { color:var(--review); }
+  .map { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:8px; overflow-x:auto; }
+  svg text { font-size:11px; pointer-events:none; }
+  svg text.top { font-weight:650; font-size:12px; }
+  svg rect { stroke:var(--card); stroke-width:1.5; }
+  table { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+  th, td { text-align:left; padding:8px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); font-weight:600; }
+  td.num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .bar { height:6px; border-radius:3px; background:var(--bar); margin-top:6px; min-width:2px; }
+  code { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:13px; }
+  .tag { font-size:12px; font-weight:600; padding:1px 8px; border-radius:99px; border:1px solid currentColor; }
+  .finding { background:var(--card); border:1px solid var(--line); border-left:4px solid var(--line); border-radius:8px; padding:10px 14px; margin-bottom:8px; }
+  .finding.bad { border-left-color:var(--bad); } .finding.warn { border-left-color:var(--review); } .finding.info { border-left-color:var(--info); } .finding.ok { border-left-color:var(--safe); }
+  .finding ul { margin:4px 0 0; padding-left:18px; color:var(--muted); }
+  footer { margin-top:40px; font-size:13px; }
+  @media (max-width:600px) { td.desc { display:none; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>macclean report</h1>
+  <div class="muted">{{.D.Generated.Format "Monday 2 January 2006, 15:04"}} · macclean {{.D.Version}}</div>
+
+  <div class="cards">
+    <div class="card"><div class="muted">Free space</div><div class="n">{{human .D.Free}}</div><div class="muted">{{pct .D.Free .D.Total}}% of {{human .D.Total}}</div></div>
+    <div class="card"><div class="muted">Safe to reclaim</div><div class="n safe">{{human .D.Safe}}</div><div class="muted"><code>macclean clean</code></div></div>
+    <div class="card"><div class="muted">Needs review</div><div class="n review">{{human .D.Review}}</div><div class="muted"><code>macclean clean --only &lt;id&gt;</code></div></div>
+  </div>
+
+  {{if .Tiles}}
+  <h2>What fills your home folder <span class="muted" style="font-weight:400">· {{human .D.Tree.Size}}</span></h2>
+  <div class="map">
+    <svg viewBox="0 0 {{.W}} {{.H}}" width="100%" role="img" aria-label="Treemap of the home folder">
+      {{range .Tiles}}
+      <g>
+        <rect x="{{.X}}" y="{{.Y}}" width="{{.W}}" height="{{.H}}" fill="{{.Fill}}" {{if .Small}}fill-opacity="0.72"{{end}}><title>{{.Title}}</title></rect>
+        {{if .Label}}<text x="{{add .X 5}}" y="{{add .Y 14}}" style="fill:{{.Text}}" {{if not .Small}}class="top"{{end}}>{{short .Name .W}}</text>{{end}}
+      </g>
+      {{end}}
+    </svg>
+  </div>
+  <p class="muted">Hover a tile for its full path and size. Drill in from the terminal with <code>macclean top &lt;folder&gt;</code>.</p>
+  {{end}}
+
+  <h2>Cleanup categories</h2>
+  <table>
+    <thead><tr><th>Category</th><th>Type</th><th class="num">Size</th><th class="desc">What it removes</th></tr></thead>
+    <tbody>
+    {{range .D.Categories}}{{if or .Bytes (not .Known)}}
+      <tr>
+        <td><code>{{.ID}}</code><div class="bar" style="width:{{bar .Bytes}}%"></div></td>
+        <td><span class="tag {{.Risk}}">{{.Risk}}</span></td>
+        <td class="num">{{if .Known}}{{human .Bytes}}{{else}}?{{end}}{{if .Items}}<div class="muted">{{.Items}} items</div>{{end}}</td>
+        <td class="desc muted">{{.Desc}}</td>
+      </tr>
+    {{end}}{{end}}
+    </tbody>
+  </table>
+
+  {{if .D.Findings}}
+  <h2>Performance check</h2>
+  {{range .D.Findings}}
+  <div class="finding {{.Severity}}">
+    <strong>{{.Check}}:</strong> {{.Summary}}
+    {{if .Advice}}<ul>{{range .Advice}}<li>{{.}}</li>{{end}}</ul>{{end}}
+  </div>
+  {{end}}
+  {{end}}
+
+  <footer class="muted">Generated by <a href="https://github.com/iamolayemi/macclean">macclean</a>. Nothing was deleted to make this report.</footer>
+</main>
+</body>
+</html>

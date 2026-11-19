@@ -8,13 +8,19 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: Test (${{ matrix.os }})
     strategy:
+      fail-fast: false
       matrix:
         os: [macos-latest, macos-15-intel]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-go@v6
@@ -22,13 +28,19 @@ jobs:
           go-version-file: go.mod
       - name: Vet
         run: go vet ./...
-      - name: Test
+      - name: Test (unit + end-to-end)
         run: go test -race -coverprofile=coverage.out ./...
+      - name: Fuzz the delete guard
+        run: go test ./internal/fsx -run '^$' -fuzz FuzzCheckDeletable -fuzztime 30s
       - name: Build
         run: go build -o macclean . && ./macclean --version && ./macclean list
 
   lint:
-    runs-on: macos-latest
+    # Type-checks the macOS code from Linux, so it doesn't wait for a Mac runner.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GOOS: darwin
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-go@v6
@@ -39,7 +51,9 @@ jobs:
           version: v2.5
 
   goreleaser-check:
-    runs-on: macos-latest
+    # Needs a Mac: the release runs macclean to generate man pages and completions.
+    runs-on: macos-15-intel
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-go@v6
