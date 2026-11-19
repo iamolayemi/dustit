@@ -7,9 +7,9 @@ import (
 
 	"github.com/dustin/go-humanize"
 
-	"github.com/iamolayemi/macclean/internal/config"
-	"github.com/iamolayemi/macclean/internal/finder"
-	"github.com/iamolayemi/macclean/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/config"
+	"github.com/iamolayemi/dustit/internal/finder"
+	"github.com/iamolayemi/dustit/internal/fsx"
 )
 
 // Risk says whether a category is cleaned by default.
@@ -257,7 +257,7 @@ func builtin(cfg config.Config) []*Target {
 			Desc:  "go clean -modcache; modules re-download on next build",
 			Needs: "go", PathCmd: []string{"go", "env", "GOMODCACHE"}, CleanCmd: []string{"go", "clean", "-modcache"}},
 		{ID: "docker", Name: "Docker unused data", Risk: Review,
-			Desc:  "docker system prune -f — for a fuller, guided prune use `macclean docker --clean`",
+			Desc:  "docker system prune -f — for a fuller, guided prune use `dustit docker --clean`",
 			Needs: "docker", CleanCmd: []string{"docker", "system", "prune", "-f"}},
 		{ID: "xcode-archives", Name: "Xcode archives", Risk: Review,
 			Desc: "App builds you archived; needed to symbolicate old crash logs",
@@ -292,7 +292,7 @@ func Select(ids []string, all bool) ([]*Target, error) {
 	for _, id := range ids {
 		t, ok := byID[strings.TrimSpace(id)]
 		if !ok {
-			return nil, fmt.Errorf("unknown category %q — run `macclean list`", id)
+			return nil, fmt.Errorf("unknown category %q — run `dustit list`", id)
 		}
 		out = append(out, t)
 	}

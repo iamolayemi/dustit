@@ -13,7 +13,7 @@ and this project uses [Semantic Versioning](https://semver.org/).
   asdf/mise tools, unused Homebrew versioned formulae and extra Xcode copies. Keeps the default, the
   newest and anything a project pins.
 - `ai-models`, `macos-installers` and `pnpm-old-stores` categories.
-- Config file (`~/.config/macclean/config.yaml`) with excludes, project folders, thresholds, disabled
+- Config file (`~/.config/dustit/config.yaml`) with excludes, project folders, thresholds, disabled
   and custom categories; `config edit`, `config check`, `config init`, `config path`.
 - `schedule`: clean safe categories daily or weekly with a notification.
 - `ui`: interactive full-screen picker.
@@ -24,7 +24,7 @@ and this project uses [Semantic Versioning](https://semver.org/).
 - `git-gc`, `dev-vms`, `icloud-evict`, `maven-repo`, `minikube-cache`, `cocoapods-specs`, `android-cache`
   and `gradle-daemon-logs` categories.
 - `doctor` checks Spotlight indexing and browser memory.
-- macclean bar: a menu bar app (`make menubar`).
+- DustIt: a menu bar app (`make menubar`).
 - End-to-end tests against a fake home folder and fuzzing of the delete guard in CI.
 - `storage`: disk usage in plain groups with app owners; the report leads with it.
 - `startup`: launch agents and daemons with owners and state, orphans first; disable, enable, remove orphans.
@@ -34,7 +34,7 @@ and this project uses [Semantic Versioning](https://semver.org/).
 - Caches of apps that are open are left alone.
 
 ### Changed
-- macclean bar redesigned to look and behave like a native macOS menu; its actions no longer need
+- DustIt redesigned to look and behave like a native macOS menu; its actions no longer need
   the Automation permission.
 - The HTML report has a storage bar, a calmer map and the exact command for every category.
 
@@ -56,4 +56,4 @@ and this project uses [Semantic Versioning](https://semver.org/).
 - `docker`: inspect and prune Docker Desktop's disk image and wait for it to shrink.
 - `projects`, `dupes`, `old`, `large`, `top`, `apps`, `leftovers` finder commands.
 - Shell completion, including category names for `clean --only`.
-- Homebrew install: `brew install iamolayemi/tap/macclean`.
+- Homebrew install: `brew install iamolayemi/tap/dustit`.

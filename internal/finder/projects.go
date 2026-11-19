@@ -8,7 +8,7 @@ import (
 
 	"github.com/dustin/go-humanize"
 
-	"github.com/iamolayemi/macclean/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/fsx"
 )
 
 func humanAgo(t time.Time) string { return humanize.Time(t) }

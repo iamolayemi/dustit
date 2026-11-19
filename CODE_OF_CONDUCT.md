@@ -6,5 +6,5 @@ In short: be respectful and constructive, assume good intent, and keep discussio
 Harassment or personal attacks aren't tolerated.
 
 Report unacceptable behaviour to the maintainer through a
-[private security advisory](https://github.com/iamolayemi/macclean/security/advisories/new) or a
+[private security advisory](https://github.com/iamolayemi/dustit/security/advisories/new) or a
 direct message on GitHub. Reports are handled confidentially.

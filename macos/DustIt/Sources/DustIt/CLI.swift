@@ -1,14 +1,14 @@
 import Foundation
 
-/// Talks to the `macclean` command-line tool, which does all scanning and cleaning.
+/// Talks to the `dustit` command-line tool, which does all scanning and cleaning.
 enum CLI {
-    /// Finds the macclean binary in the usual install locations.
+    /// Finds the dustit binary in the usual install locations.
     static let path: String? = {
         let home = FileManager.default.homeDirectoryForCurrentUser.path
         let candidates = [
-            ProcessInfo.processInfo.environment["MACCLEAN_BIN"],
-            "/opt/homebrew/bin/macclean", "/usr/local/bin/macclean",
-            "\(home)/.local/bin/macclean", "\(home)/go/bin/macclean",
+            ProcessInfo.processInfo.environment["DUSTIT_BIN"],
+            "/opt/homebrew/bin/dustit", "/usr/local/bin/dustit",
+            "\(home)/.local/bin/dustit", "\(home)/go/bin/dustit",
         ].compactMap { $0 }
         return candidates.first { FileManager.default.isExecutableFile(atPath: $0) }
     }()
@@ -16,13 +16,13 @@ enum CLI {
     struct Failure: Error, LocalizedError {
         let message: String
         var errorDescription: String? { message }
-        var installHint: String { "macclean isn't installed. Install it with: brew install iamolayemi/tap/macclean" }
+        var installHint: String { "dustit isn't installed. Install it with: brew install iamolayemi/tap/dustit" }
     }
 
-    /// Runs macclean with arguments and returns stdout.
+    /// Runs dustit with arguments and returns stdout.
     static func run(_ args: [String]) async throws -> Data {
         guard let path else {
-            throw Failure(message: "macclean isn't installed. Install it with: brew install iamolayemi/tap/macclean")
+            throw Failure(message: "dustit isn't installed. Install it with: brew install iamolayemi/tap/dustit")
         }
         return try await withCheckedThrowingContinuation { cont in
             let p = Process()
@@ -38,7 +38,7 @@ enum CLI {
                     cont.resume(returning: data)
                 } else {
                     let msg = String(data: err.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
-                    cont.resume(throwing: Failure(message: msg.isEmpty ? "macclean exited with \(proc.terminationStatus)" : msg))
+                    cont.resume(throwing: Failure(message: msg.isEmpty ? "dustit exited with \(proc.terminationStatus)" : msg))
                 }
             }
             do { try p.run() } catch { cont.resume(throwing: error) }

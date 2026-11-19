@@ -8,9 +8,9 @@ Set Theme "Catppuccin Mocha"
 Set TypingSpeed 40ms
 Env PATH "./:$PATH"
 
-Type "macclean scan" Sleep 300ms Enter
+Type "dustit scan" Sleep 300ms Enter
 Sleep 12s
-Type "clear && macclean doctor" Sleep 300ms Enter
+Type "clear && dustit doctor" Sleep 300ms Enter
 Sleep 6s
-Type "clear && macclean clean --only npm-cache,stale-deps --dry-run" Sleep 300ms Enter
+Type "clear && dustit clean --only npm-cache,stale-deps --dry-run" Sleep 300ms Enter
 Sleep 8s

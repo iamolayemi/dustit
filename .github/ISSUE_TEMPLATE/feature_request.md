@@ -1,10 +1,10 @@
 ---
 name: Feature or new cleanup category
-about: Suggest something macclean should find or clean
+about: Suggest something dustit should find or clean
 labels: enhancement
 ---
 
-**What should macclean find or clean?**
+**What should dustit find or clean?**
 Paths, tool name, and how big it typically gets.
 
 **Is it safe to remove?**

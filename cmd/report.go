@@ -11,12 +11,12 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/iamolayemi/macclean/internal/doctor"
-	"github.com/iamolayemi/macclean/internal/finder"
-	"github.com/iamolayemi/macclean/internal/fsx"
-	"github.com/iamolayemi/macclean/internal/report"
-	"github.com/iamolayemi/macclean/internal/targets"
-	"github.com/iamolayemi/macclean/internal/ui"
+	"github.com/iamolayemi/dustit/internal/doctor"
+	"github.com/iamolayemi/dustit/internal/finder"
+	"github.com/iamolayemi/dustit/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/report"
+	"github.com/iamolayemi/dustit/internal/targets"
+	"github.com/iamolayemi/dustit/internal/ui"
 )
 
 func newReportCmd() *cobra.Command {
@@ -83,7 +83,7 @@ of your home folder, every cleanup category and the doctor's findings. Nothing i
 				return err
 			}
 			if out == "" {
-				out = "macclean-report-" + time.Now().Format("2006-01-02") + ".html"
+				out = "dustit-report-" + time.Now().Format("2006-01-02") + ".html"
 			}
 			abs, _ := filepath.Abs(out)
 			if err := os.WriteFile(abs, html, 0o644); err != nil {
@@ -98,7 +98,7 @@ of your home folder, every cleanup category and the doctor's findings. Nothing i
 			return nil
 		},
 	}
-	c.Flags().StringVarP(&out, "output", "o", "", "file to write (default: macclean-report-DATE.html here)")
+	c.Flags().StringVarP(&out, "output", "o", "", "file to write (default: dustit-report-DATE.html here)")
 	c.Flags().BoolVar(&open, "open", false, "open the report in your browser")
 	c.Flags().BoolVar(&noDoctor, "no-doctor", false, "skip the performance check")
 	c.Flags().BoolVar(&noMap, "no-treemap", false, "skip the treemap (faster)")

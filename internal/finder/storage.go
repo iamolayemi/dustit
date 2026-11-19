@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/iamolayemi/macclean/internal/fsx"
-	"github.com/iamolayemi/macclean/internal/sh"
+	"github.com/iamolayemi/dustit/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/sh"
 )
 
 // Group is one plain-language slice of the disk ("Downloads", "App data", …).
@@ -63,22 +63,22 @@ func StorageFrom(tree *Node) []Group {
 	apps := fsx.DiskUsage("/Applications").Bytes + level1["Applications"]
 
 	groups := []Group{
-		{"Applications", "macclean apps --uninstall", apps},
-		{"Documents", "macclean old ~/Documents · macclean dupes", level1["Documents"]},
-		{"Desktop", "macclean old ~/Desktop", level1["Desktop"]},
-		{"Downloads", "macclean clean --only old-downloads,installers", level1["Downloads"]},
+		{"Applications", "dustit apps --uninstall", apps},
+		{"Documents", "dustit old ~/Documents · dustit dupes", level1["Documents"]},
+		{"Desktop", "dustit old ~/Desktop", level1["Desktop"]},
+		{"Downloads", "dustit clean --only old-downloads,installers", level1["Downloads"]},
 		{"Photos library", "Photos → Settings → iCloud → Optimise Mac Storage", photos},
-		{"Pictures (other)", "macclean clean --only screenshots", level1["Pictures"] - photos},
+		{"Pictures (other)", "dustit clean --only screenshots", level1["Pictures"] - photos},
 		{"Music", "", level1["Music"]},
-		{"Movies", "macclean clean --only large-videos", level1["Movies"]},
-		{"iCloud Drive (downloaded)", "macclean clean --only icloud-evict", level2["Library/Mobile Documents"]},
+		{"Movies", "dustit clean --only large-videos", level1["Movies"]},
+		{"iCloud Drive (downloaded)", "dustit clean --only icloud-evict", level2["Library/Mobile Documents"]},
 		{"Mail", "Mail → Settings → Accounts → remove old attachments", level2["Library/Mail"]},
 		{"Messages", "System Settings → General → Storage → Messages", level2["Library/Messages"]},
-		{"iPhone & iPad backups", "macclean clean --only ios-backups", backups},
-		{"App data", "macclean storage --apps · macclean leftovers", appData},
-		{"Caches & logs", "macclean clean", level2["Library/Caches"] + level2["Library/Logs"]},
-		{"Developer files", "macclean clean --only stale-deps,old-versions · macclean docker", dev},
-		{"Trash", "macclean clean --only trash", level1[".Trash"]},
+		{"iPhone & iPad backups", "dustit clean --only ios-backups", backups},
+		{"App data", "dustit storage --apps · dustit leftovers", appData},
+		{"Caches & logs", "dustit clean", level2["Library/Caches"] + level2["Library/Logs"]},
+		{"Developer files", "dustit clean --only stale-deps,old-versions · dustit docker", dev},
+		{"Trash", "dustit clean --only trash", level1[".Trash"]},
 	}
 	counted := level1["Applications"] // ~/Applications is inside home and already in "Applications"
 	for _, g := range groups {
@@ -86,13 +86,13 @@ func StorageFrom(tree *Node) []Group {
 			counted += g.Size
 		}
 	}
-	groups = append(groups, Group{"Other files in your home folder", "macclean top", max(home-counted, 0)})
+	groups = append(groups, Group{"Other files in your home folder", "dustit top", max(home-counted, 0)})
 
 	// Outside the home folder.
 	brew := fsx.DiskUsage("/opt/homebrew").Bytes + fsx.DiskUsage("/usr/local").Bytes
 	sys := fsx.DiskUsage("/Library").Bytes + fsx.DiskUsage("/Users/Shared").Bytes + fsx.DiskUsage("/private/var").Bytes
 	groups = append(groups,
-		Group{"Homebrew & command-line tools", "macclean clean --only homebrew,old-versions", brew},
+		Group{"Homebrew & command-line tools", "dustit clean --only homebrew,old-versions", brew},
 		Group{"System files & temporary data", "/Library, /private/var — mostly managed by macOS", sys},
 	)
 	data, macos := apfsVolumes()

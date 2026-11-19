@@ -8,25 +8,25 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/iamolayemi/macclean/internal/fsx"
-	"github.com/iamolayemi/macclean/internal/schedule"
-	"github.com/iamolayemi/macclean/internal/targets"
-	"github.com/iamolayemi/macclean/internal/ui"
+	"github.com/iamolayemi/dustit/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/schedule"
+	"github.com/iamolayemi/dustit/internal/targets"
+	"github.com/iamolayemi/dustit/internal/ui"
 )
 
 func newScheduleCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "schedule",
 		Short: "Clean safe categories automatically (daily or weekly), with a notification",
-		Long: `Runs "macclean clean" on a schedule through a launchd agent and shows a macOS
+		Long: `Runs "dustit clean" on a schedule through a launchd agent and shows a macOS
 notification with how much was freed. Only safe categories can run unattended; the
 default set leaves out dependency folders, the Trash and caches of apps you may have open.
 
-  macclean schedule                         show the current schedule
-  macclean schedule on                      every Monday at 10:00
-  macclean schedule on --daily --at 21:30
-  macclean schedule on --day fri --only npm-cache,user-caches
-  macclean schedule off`,
+  dustit schedule                         show the current schedule
+  dustit schedule on                      every Monday at 10:00
+  dustit schedule on --daily --at 21:30
+  dustit schedule on --day fri --only npm-cache,user-caches
+  dustit schedule off`,
 		Args: cobra.NoArgs,
 		RunE: func(*cobra.Command, []string) error { showSchedule(); return nil },
 	}
@@ -80,8 +80,8 @@ default set leaves out dependency folders, the Trash and caches of apps you may 
 			if err := schedule.Install(spec); err != nil {
 				return err
 			}
-			fmt.Printf("%s macclean will clean %d categories %s.\n", ui.Green.Render("✓"), len(cats), schedule.Describe(weekday, t.Hour(), t.Minute()))
-			ui.Hint("Log: %s   Turn off: macclean schedule off", fsx.Pretty(schedule.LogPath()))
+			fmt.Printf("%s DustIt will clean %d categories %s.\n", ui.Green.Render("✓"), len(cats), schedule.Describe(weekday, t.Hour(), t.Minute()))
+			ui.Hint("Log: %s   Turn off: dustit schedule off", fsx.Pretty(schedule.LogPath()))
 			return nil
 		},
 	}
@@ -120,15 +120,15 @@ func newScheduleAlertCmd() *cobra.Command {
 		Long: `Checks free space in the background and shows a notification when it drops below
 the threshold (at most twice a day). It never cleans anything by itself.
 
-  macclean schedule alert on                     below 10%, checked every hour
-  macclean schedule alert on --below 20GB --every 30m
-  macclean schedule alert off`,
+  dustit schedule alert on                     below 10%, checked every hour
+  dustit schedule alert on --below 20GB --every 30m
+  dustit schedule alert off`,
 		Args: cobra.NoArgs,
 		RunE: func(*cobra.Command, []string) error {
 			if b, e, ok := schedule.AlertInstalled(); ok {
 				fmt.Printf("Low-disk alert: below %s, checked every %s\n", b, e)
 			} else {
-				fmt.Println("No low-disk alert. Turn it on with: macclean schedule alert on")
+				fmt.Println("No low-disk alert. Turn it on with: dustit schedule alert on")
 			}
 			return nil
 		},
@@ -188,7 +188,7 @@ func newAlertCmd() *cobra.Command {
 		Short: "Check free space against a threshold (exit status 1 when low)",
 		Long: `Prints whether free space is below the threshold and exits with status 1 when it is,
 so it works in scripts. With --notify it also shows a macOS notification (at most twice a day).
-"macclean schedule alert on" runs this in the background.`,
+"dustit schedule alert on" runs this in the background.`,
 		Args: cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			low, err := schedule.Threshold(below, ui.ParseSize)
@@ -201,7 +201,7 @@ so it works in scripts. With --notify it also shows a macOS notification (at mos
 				fmt.Printf("%s %s free (%.0f%%) — above %s.\n", ui.Green.Render("✓"), ui.Human(free), pct, below)
 				return nil
 			}
-			msg := fmt.Sprintf("Only %s free (%.0f%%). Run macclean scan to see what can go.", ui.Human(free), pct)
+			msg := fmt.Sprintf("Only %s free (%.0f%%). Run dustit scan to see what can go.", ui.Human(free), pct)
 			fmt.Println(ui.Red.Render("✗ ") + msg)
 			if notify && schedule.ShouldNotify(12*time.Hour) {
 				sendNotification("Your Mac is running out of space", msg)
@@ -222,13 +222,13 @@ func showSchedule() {
 	}()
 	st := schedule.Current()
 	if !st.Installed {
-		fmt.Println("No schedule. Turn one on with: macclean schedule on")
+		fmt.Println("No schedule. Turn one on with: dustit schedule on")
 		ui.Hint("Default: every Monday at 10:00, cleaning %s", strings.Join(schedule.DefaultCategories, ", "))
 		return
 	}
 	state := ui.Green.Render("active")
 	if !st.Loaded {
-		state = ui.Yellow.Render("installed but not loaded (log out and in, or run: macclean schedule on)")
+		state = ui.Yellow.Render("installed but not loaded (log out and in, or run: dustit schedule on)")
 	}
 	fmt.Printf("Cleaning %s — %s\n", schedule.Describe(st.Weekday, st.Hour, st.Minute), state)
 	fmt.Printf("Categories: %s\n", strings.Join(st.Categories, ", "))

@@ -1,6 +1,6 @@
-// Command macclean deep-cleans a Mac and frees disk space, safely.
+// Command dustit deep-cleans a Mac and frees disk space, safely.
 package main
 
-import "github.com/iamolayemi/macclean/cmd"
+import "github.com/iamolayemi/dustit/cmd"
 
 func main() { cmd.Execute() }

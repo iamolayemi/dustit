@@ -14,8 +14,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/iamolayemi/macclean/internal/fsx"
-	"github.com/iamolayemi/macclean/internal/sh"
+	"github.com/iamolayemi/dustit/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/sh"
 )
 
 // Severity of a finding.
@@ -288,7 +288,7 @@ func checkDisk(human Human) Finding {
 		f.Summary += " — getting full"
 	}
 	if f.Severity >= Warn {
-		f.Advice = append(f.Advice, "Free space: macclean scan, then macclean clean")
+		f.Advice = append(f.Advice, "Free space: dustit scan, then dustit clean")
 	}
 	return f
 }

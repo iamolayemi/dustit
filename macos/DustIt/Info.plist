@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleName</key>
-	<string>macclean bar</string>
+	<string>DustIt</string>
 	<key>CFBundleDisplayName</key>
-	<string>macclean bar</string>
+	<string>DustIt</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.github.iamolayemi.macclean.bar</string>
+	<string>com.github.iamolayemi.dustit</string>
 	<key>CFBundleExecutable</key>
-	<string>MacCleanBar</string>
+	<string>DustIt</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -21,6 +21,6 @@
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>macclean bar opens Terminal to run the interactive picker.</string>
+	<string>DustIt opens Terminal to run the interactive picker.</string>
 </dict>
 </plist>

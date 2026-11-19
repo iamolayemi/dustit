@@ -109,8 +109,8 @@
   <section>
     <div class="stats">
       <div><div class="l">Free</div><div class="v num">{{human .D.Free}}</div></div>
-      <div><div class="l">Safe to clean</div><div class="v num">{{human .D.Safe}}</div><code>macclean clean</code></div>
-      <div><div class="l">Worth reviewing</div><div class="v num">{{human .D.Review}}</div><code>macclean ui</code></div>
+      <div><div class="l">Safe to clean</div><div class="v num">{{human .D.Safe}}</div><code>dustit clean</code></div>
+      <div><div class="l">Worth reviewing</div><div class="v num">{{human .D.Review}}</div><code>dustit ui</code></div>
     </div>
   </section>
 
@@ -127,7 +127,7 @@
       </g>
       {{end}}
     </svg>
-    <p class="faint" style="margin:10px 0 0;font-size:12.5px">Hover a block for its full path. Explore from the terminal with <code>macclean top &lt;folder&gt;</code>.</p>
+    <p class="faint" style="margin:10px 0 0;font-size:12.5px">Hover a block for its full path. Explore from the terminal with <code>dustit top &lt;folder&gt;</code>.</p>
   </section>
   {{end}}
 
@@ -140,7 +140,7 @@
         <tr>
           <td>{{.Name}}<div class="risk {{.Risk}}">{{if eq .Risk "safe"}}Safe{{else}}Review first{{end}}</div></td>
           <td class="size num">{{if .Known}}{{human .Bytes}}{{else}}—{{end}}</td>
-          <td><code>macclean clean --only {{.ID}}</code></td>
+          <td><code>dustit clean --only {{.ID}}</code></td>
           <td class="desc">{{.Desc}}</td>
         </tr>
       {{end}}{{end}}
@@ -165,7 +165,7 @@
   </section>
   {{end}}
 
-  <footer>Made by <a href="https://github.com/iamolayemi/macclean">macclean</a> {{.D.Version}}. Nothing was changed on your Mac to produce this report.</footer>
+  <footer>Made by <a href="https://github.com/iamolayemi/dustit">dustit</a> {{.D.Version}}. Nothing was changed on your Mac to produce this report.</footer>
 </main>
 </body>
 </html>

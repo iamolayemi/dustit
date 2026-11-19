@@ -8,10 +8,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/iamolayemi/macclean/internal/docker"
-	"github.com/iamolayemi/macclean/internal/fsx"
-	"github.com/iamolayemi/macclean/internal/sh"
-	"github.com/iamolayemi/macclean/internal/ui"
+	"github.com/iamolayemi/dustit/internal/docker"
+	"github.com/iamolayemi/dustit/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/sh"
+	"github.com/iamolayemi/dustit/internal/ui"
 )
 
 func newDockerCmd() *cobra.Command {
@@ -52,7 +52,7 @@ always ask before deleting.`,
 			_ = sh.Shown("docker", "system", "df")
 			fmt.Println()
 			if !clean {
-				ui.Hint("The RECLAIMABLE column is what `macclean docker --clean` can free.")
+				ui.Hint("The RECLAIMABLE column is what `dustit docker --clean` can free.")
 				ui.Hint("Volumes hold database data; they are only offered with --volumes.")
 				return nil
 			}

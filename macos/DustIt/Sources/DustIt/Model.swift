@@ -99,7 +99,7 @@ final class Model: ObservableObject {
         let before = freeSpace()
         do {
             _ = try await CLI.cleanSafe()
-            banner = Banner(text: "Freed \(human(max(freeSpace() - before, 0))). Undo trashed items with: macclean undo", isError: false)
+            banner = Banner(text: "Freed \(human(max(freeSpace() - before, 0))). Undo trashed items with: dustit undo", isError: false)
         } catch {
             banner = Banner(text: error.localizedDescription, isError: true)
         }
@@ -109,14 +109,14 @@ final class Model: ObservableObject {
 
     @Published var working: String?
 
-    /// Opens Terminal running a macclean command. Uses a small .command file, which Terminal
+    /// Opens Terminal running a dustit command. Uses a small .command file, which Terminal
     /// opens without needing the Automation (Apple Events) permission.
     func openInTerminal(_ args: String) {
         guard let path = CLI.path else {
             banner = Banner(text: CLI.Failure(message: "").installHint, isError: true)
             return
         }
-        let file = FileManager.default.temporaryDirectory.appendingPathComponent("macclean-\(UUID().uuidString.prefix(8)).command")
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent("dustit-\(UUID().uuidString.prefix(8)).command")
         let script = """
         #!/bin/zsh
         clear
@@ -161,7 +161,7 @@ final class Model: ObservableObject {
         guard working == nil else { return }
         working = "Building storage report…"
         defer { working = nil }
-        let file = FileManager.default.temporaryDirectory.appendingPathComponent("macclean-report.html").path
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent("dustit-report.html").path
         do {
             _ = try await CLI.run(["report", "-o", file])
             NSWorkspace.shared.open(URL(fileURLWithPath: file))

@@ -11,8 +11,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/iamolayemi/macclean/internal/fsx"
-	"github.com/iamolayemi/macclean/internal/sh"
+	"github.com/iamolayemi/dustit/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/sh"
 )
 
 // versionTool describes where a version manager keeps installed versions and how to

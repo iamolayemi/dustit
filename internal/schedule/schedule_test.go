@@ -11,7 +11,7 @@ import (
 
 func TestPlistIsValidAndComplete(t *testing.T) {
 	for _, wd := range []int{-1, 1} {
-		p, err := Plist(Spec{Binary: "/opt/homebrew/bin/macclean", Categories: []string{"npm-cache", "user-caches"},
+		p, err := Plist(Spec{Binary: "/opt/homebrew/bin/dustit", Categories: []string{"npm-cache", "user-caches"},
 			Weekday: wd, Hour: 10, Minute: 30, LogFile: "/tmp/x & y.log"})
 		if err != nil {
 			t.Fatal(err)
@@ -50,7 +50,7 @@ func TestDescribe(t *testing.T) {
 }
 
 func TestAlertPlistAndThreshold(t *testing.T) {
-	p, err := AlertPlist(AlertSpec{Binary: "/x/macclean", Below: "10%", Every: time.Hour})
+	p, err := AlertPlist(AlertSpec{Binary: "/x/dustit", Below: "10%", Every: time.Hour})
 	if err != nil || !strings.Contains(p, "<integer>3600</integer>") || !strings.Contains(p, "<string>alert</string>") {
 		t.Fatalf("bad alert plist: %v\n%s", err, p)
 	}

@@ -33,7 +33,7 @@ func TestCheckDeletableAllows(t *testing.T) {
 }
 
 func TestSymlinkEscapeRefused(t *testing.T) {
-	link := H(".macclean-test-link")
+	link := H(".dustit-test-link")
 	os.Remove(link)
 	if err := os.Symlink("/usr", link); err != nil {
 		t.Skip(err)

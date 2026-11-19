@@ -5,12 +5,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/iamolayemi/macclean/internal/docker"
-	"github.com/iamolayemi/macclean/internal/fsx"
-	"github.com/iamolayemi/macclean/internal/sh"
+	"github.com/iamolayemi/dustit/internal/docker"
+	"github.com/iamolayemi/dustit/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/sh"
 )
 
-// Insight is a space user macclean reports but can't clean blindly.
+// Insight is a space user dustit reports but can't clean blindly.
 type Insight struct {
 	Text string `json:"text"`
 	Hint string `json:"hint"`
@@ -22,7 +22,7 @@ func Insights(human func(int64) string) []Insight {
 	if used, _ := docker.RawSizes(); used > 1e9 {
 		out = append(out, Insight{
 			Text: fmt.Sprintf("Docker Desktop's disk image uses %s.", human(used)),
-			Hint: "See what's inside with `macclean docker`; prune it with `macclean docker --clean`.",
+			Hint: "See what's inside with `dustit docker`; prune it with `dustit docker --clean`.",
 		})
 	}
 	orb := fsx.H("Library/Group Containers/HUAQ24HBR6.dev.orbstack")
@@ -32,13 +32,13 @@ func Insights(human func(int64) string) []Insight {
 			if u := fsx.DiskUsage(img).Bytes; u > 1e9 {
 				out = append(out, Insight{
 					Text: fmt.Sprintf("OrbStack's disk image uses %s.", human(u)),
-					Hint: "OrbStack works with the docker CLI: `macclean docker --clean` prunes it too.",
+					Hint: "OrbStack works with the docker CLI: `dustit docker --clean` prunes it too.",
 				})
 			}
 		} else {
 			out = append(out, Insight{
 				Text: "OrbStack is installed; its disk image can't be measured without Full Disk Access.",
-				Hint: "Prune it with `macclean docker --clean` (OrbStack works with the docker CLI).",
+				Hint: "Prune it with `dustit docker --clean` (OrbStack works with the docker CLI).",
 			})
 		}
 	}
@@ -61,7 +61,7 @@ func Insights(human func(int64) string) []Insight {
 		if len(big) > 0 {
 			out = append(out, Insight{
 				Text: "Largest app data folders: " + strings.Join(big, ", ") + ".",
-				Hint: "This is app data, not cache: clean it from inside each app. Drill in with `macclean top \"~/Library/Application Support/<app>\"`.",
+				Hint: "This is app data, not cache: clean it from inside each app. Drill in with `dustit top \"~/Library/Application Support/<app>\"`.",
 			})
 		}
 	}

@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/iamolayemi/macclean/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/fsx"
 )
 
 // Item is something that could be removed.

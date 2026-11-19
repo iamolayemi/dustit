@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/iamolayemi/macclean/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/fsx"
 )
 
 func TestBigGitRepos(t *testing.T) {

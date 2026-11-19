@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/iamolayemi/macclean/internal/finder"
-	"github.com/iamolayemi/macclean/internal/fsx"
-	"github.com/iamolayemi/macclean/internal/history"
-	"github.com/iamolayemi/macclean/internal/sh"
+	"github.com/iamolayemi/dustit/internal/finder"
+	"github.com/iamolayemi/dustit/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/history"
+	"github.com/iamolayemi/dustit/internal/sh"
 )
 
 // Result is what scanning one target found.

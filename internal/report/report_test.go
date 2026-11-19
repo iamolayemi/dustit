@@ -8,7 +8,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/iamolayemi/macclean/internal/finder"
+	"github.com/iamolayemi/dustit/internal/finder"
 )
 
 func TestSquarifyFillsAreaProportionally(t *testing.T) {

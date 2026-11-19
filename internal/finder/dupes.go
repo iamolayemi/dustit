@@ -9,7 +9,7 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/iamolayemi/macclean/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/fsx"
 )
 
 // DupGroup is a set of files with identical content.

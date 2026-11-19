@@ -1,4 +1,4 @@
-module github.com/iamolayemi/macclean
+module github.com/iamolayemi/dustit
 
 go 1.24
 

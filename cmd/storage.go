@@ -5,9 +5,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/iamolayemi/macclean/internal/finder"
-	"github.com/iamolayemi/macclean/internal/fsx"
-	"github.com/iamolayemi/macclean/internal/ui"
+	"github.com/iamolayemi/dustit/internal/finder"
+	"github.com/iamolayemi/dustit/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/ui"
 )
 
 func newStorageCmd() *cobra.Command {
@@ -54,7 +54,7 @@ and flags folders whose app is no longer installed.`,
 					fmt.Printf("  %9s  %-40s %s\n", ui.Human(o.Size), owner, ui.Dim.Render(fsx.Pretty(o.Path)))
 				}
 			} else {
-				ui.Hint("\nSee which app owns each data folder: macclean storage --apps")
+				ui.Hint("\nSee which app owns each data folder: dustit storage --apps")
 			}
 			return nil
 		},

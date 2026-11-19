@@ -6,8 +6,8 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/iamolayemi/macclean/internal/finder"
-	"github.com/iamolayemi/macclean/internal/targets"
+	"github.com/iamolayemi/dustit/internal/finder"
+	"github.com/iamolayemi/dustit/internal/targets"
 )
 
 func key(s string) tea.KeyMsg {

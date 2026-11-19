@@ -7,8 +7,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/iamolayemi/macclean/internal/fsx"
-	"github.com/iamolayemi/macclean/internal/sh"
+	"github.com/iamolayemi/dustit/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/sh"
 )
 
 // RawPath is Docker Desktop's VM disk image.

@@ -9,11 +9,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/iamolayemi/macclean/internal/config"
-	"github.com/iamolayemi/macclean/internal/finder"
-	"github.com/iamolayemi/macclean/internal/fsx"
-	"github.com/iamolayemi/macclean/internal/targets"
-	"github.com/iamolayemi/macclean/internal/ui"
+	"github.com/iamolayemi/dustit/internal/config"
+	"github.com/iamolayemi/dustit/internal/finder"
+	"github.com/iamolayemi/dustit/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/targets"
+	"github.com/iamolayemi/dustit/internal/ui"
 )
 
 // applyConfig loads the config file and hands its settings to the packages that use them.
@@ -30,13 +30,13 @@ func newConfigCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "config",
 		Short: "Show, create or edit your config (excludes, project folders, thresholds, custom categories)",
-		Long: "macclean reads " + fsx.Pretty(config.Path()) + ` (or $MACCLEAN_CONFIG).
+		Long: "DustIt reads " + fsx.Pretty(config.Path()) + ` (or $DUSTIT_CONFIG).
 
-  macclean config          show the settings in effect
-  macclean config edit     open it in $EDITOR (created from an example if missing)
-  macclean config check    find syntax errors, typos and bad values
-  macclean config init     write the commented example
-  macclean config path     print where it lives`,
+  dustit config          show the settings in effect
+  dustit config edit     open it in $EDITOR (created from an example if missing)
+  dustit config check    find syntax errors, typos and bad values
+  dustit config init     write the commented example
+  dustit config path     print where it lives`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error { return showConfig() },
 	}
@@ -49,7 +49,7 @@ func newConfigCmd() *cobra.Command {
 				if err != nil {
 					return err
 				}
-				fmt.Println("Created " + fsx.Pretty(p) + ". Edit it with: macclean config edit")
+				fmt.Println("Created " + fsx.Pretty(p) + ". Edit it with: dustit config edit")
 				return nil
 			}},
 		&cobra.Command{Use: "check", Aliases: []string{"validate", "lint"}, Short: "Check the config for syntax errors, typos and bad values", Args: cobra.NoArgs,
@@ -136,7 +136,7 @@ func checkConfig() bool {
 func showConfig() error {
 	c := config.Current
 	p := config.Path()
-	state := ui.Dim.Render("(not created yet — defaults in use; run: macclean config edit)")
+	state := ui.Dim.Render("(not created yet — defaults in use; run: dustit config edit)")
 	if fsx.Exists(p) {
 		state = ""
 	}

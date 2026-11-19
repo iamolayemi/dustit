@@ -8,7 +8,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/iamolayemi/macclean/internal/finder"
+	"github.com/iamolayemi/dustit/internal/finder"
 )
 
 //go:embed report.html.tmpl

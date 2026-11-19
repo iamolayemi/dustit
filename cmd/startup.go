@@ -8,9 +8,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/iamolayemi/macclean/internal/finder"
-	"github.com/iamolayemi/macclean/internal/fsx"
-	"github.com/iamolayemi/macclean/internal/ui"
+	"github.com/iamolayemi/dustit/internal/finder"
+	"github.com/iamolayemi/dustit/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/ui"
 )
 
 const loginItemsPane = "x-apple.systempreferences:com.apple.LoginItems-Settings.extension"
@@ -24,13 +24,13 @@ func newStartupCmd() *cobra.Command {
 		Long: `Lists every launch agent and daemon — what starts in the background, which app it
 belongs to, whether it's running — with items whose program no longer exists first.
 
-  macclean startup                          list everything
-  macclean startup --disable <label>        stop one of your agents and keep it from starting
-  macclean startup --enable <label>         undo --disable
-  macclean startup --remove-orphans         unload and trash your agents whose program is gone
-  macclean startup --open                   open Login Items & Extensions in System Settings
+  dustit startup                          list everything
+  dustit startup --disable <label>        stop one of your agents and keep it from starting
+  dustit startup --enable <label>         undo --disable
+  dustit startup --remove-orphans         unload and trash your agents whose program is gone
+  dustit startup --open                   open Login Items & Extensions in System Settings
 
-Items for all users or the system need an admin password; macclean prints the exact sudo
+Items for all users or the system need an admin password; dustit prints the exact sudo
 command instead of running it.`,
 		Args: cobra.NoArgs,
 		RunE: func(*cobra.Command, []string) error {
@@ -81,10 +81,10 @@ command instead of running it.`,
 			}
 			fmt.Println()
 			if orphans > 0 {
-				ui.Hint("Remove the ones left behind: macclean startup --remove-orphans")
+				ui.Hint("Remove the ones left behind: dustit startup --remove-orphans")
 			}
-			ui.Hint("Stop one from starting: macclean startup --disable <label>")
-			ui.Hint("Apps' own login items: macclean startup --open (System Settings → Login Items & Extensions)")
+			ui.Hint("Stop one from starting: dustit startup --disable <label>")
+			ui.Hint("Apps' own login items: dustit startup --open (System Settings → Login Items & Extensions)")
 			return nil
 		},
 	}
@@ -121,7 +121,7 @@ func findStartup(items []finder.StartupItem, label string) (finder.StartupItem, 
 			return it, nil
 		}
 	}
-	return finder.StartupItem{}, fmt.Errorf("no background item with label %q (see: macclean startup)", label)
+	return finder.StartupItem{}, fmt.Errorf("no background item with label %q (see: dustit startup)", label)
 }
 
 func setStartup(items []finder.StartupItem, label string, on bool) error {
@@ -155,7 +155,7 @@ func setStartup(items []finder.StartupItem, label string, on bool) error {
 	if err := exec.Command("launchctl", "disable", target).Run(); err != nil {
 		return err
 	}
-	fmt.Println(ui.Green.Render("✓") + " " + it.Label + " is stopped and won't start again. Undo: macclean startup --enable " + it.Label)
+	fmt.Println(ui.Green.Render("✓") + " " + it.Label + " is stopped and won't start again. Undo: dustit startup --enable " + it.Label)
 	return nil
 }
 

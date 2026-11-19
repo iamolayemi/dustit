@@ -9,7 +9,7 @@ import (
 
 func TestLoadDefaultsAndOverrides(t *testing.T) {
 	dir := t.TempDir()
-	t.Setenv("MACCLEAN_CONFIG", filepath.Join(dir, "config.yaml"))
+	t.Setenv("DUSTIT_CONFIG", filepath.Join(dir, "config.yaml"))
 	if err := Load(); err != nil || Current.StaleDays != 30 {
 		t.Fatalf("missing file should give defaults: %v %+v", err, Current)
 	}
@@ -28,7 +28,7 @@ func TestLoadDefaultsAndOverrides(t *testing.T) {
 
 func TestExampleParses(t *testing.T) {
 	dir := t.TempDir()
-	t.Setenv("MACCLEAN_CONFIG", filepath.Join(dir, "c.yaml"))
+	t.Setenv("DUSTIT_CONFIG", filepath.Join(dir, "c.yaml"))
 	if _, err := Init(); err != nil {
 		t.Fatal(err)
 	}
@@ -39,7 +39,7 @@ func TestExampleParses(t *testing.T) {
 
 func TestCheck(t *testing.T) {
 	dir := t.TempDir()
-	t.Setenv("MACCLEAN_CONFIG", filepath.Join(dir, "c.yaml"))
+	t.Setenv("DUSTIT_CONFIG", filepath.Join(dir, "c.yaml"))
 	write := func(s string) { _ = os.WriteFile(Path(), []byte(s), 0o644) }
 	errs := func(ps []Problem) (n int) {
 		for _, p := range ps {

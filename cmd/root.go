@@ -1,4 +1,4 @@
-// Package cmd wires macclean's commands together with cobra.
+// Package cmd wires dustit's commands together with cobra.
 package cmd
 
 import (
@@ -12,10 +12,10 @@ import (
 	"github.com/muesli/termenv"
 	"github.com/spf13/cobra"
 
-	"github.com/iamolayemi/macclean/internal/history"
+	"github.com/iamolayemi/dustit/internal/history"
 )
 
-// Set at build time by GoReleaser (-ldflags "-X github.com/iamolayemi/macclean/cmd.version=…").
+// Set at build time by GoReleaser (-ldflags "-X github.com/iamolayemi/dustit/cmd.version=…").
 var (
 	version = "dev"
 	commit  = "none"
@@ -25,28 +25,29 @@ var (
 func newRootCmd() *cobra.Command {
 	var noColor bool
 	root := &cobra.Command{
-		Use:   "macclean",
+		Use:   "dustit",
 		Short: "Deep-clean your Mac, free disk space and find what slows it down",
-		Long: `macclean finds caches, logs, stale project dependencies, old and duplicate files,
+		Long: `DustIt finds caches, logs, stale project dependencies, old and duplicate files,
 leftovers from deleted apps and unused Docker data, and removes them when you say so.
 
 Nothing is deleted without asking unless you pass --yes. Start with:
 
-  macclean scan`,
+  dustit scan`,
 		Version:       fmt.Sprintf("%s (commit %s, built %s)", version, commit, date),
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			migrateOldName()
 			history.Begin(cmd.CommandPath())
 			// A broken config must not lock you out of fixing it.
-			if err := applyConfig(); err != nil && !strings.HasPrefix(cmd.CommandPath(), "macclean config") {
-				return fmt.Errorf("%w\nFix it with: macclean config edit", err)
+			if err := applyConfig(); err != nil && !strings.HasPrefix(cmd.CommandPath(), "dustit config") {
+				return fmt.Errorf("%w\nFix it with: dustit config edit", err)
 			}
 			if noColor || os.Getenv("NO_COLOR") != "" {
 				lipgloss.SetColorProfile(termenv.Ascii)
 			}
 			if runtime.GOOS != "darwin" {
-				fmt.Fprintln(os.Stderr, "warning: macclean is built for macOS; most paths won't exist here")
+				fmt.Fprintln(os.Stderr, "warning: DustIt is built for macOS; most paths won't exist here")
 			}
 			return nil
 		},
@@ -79,7 +80,7 @@ Nothing is deleted without asking unless you pass --yes. Start with:
 	return root
 }
 
-// errQuietExit makes macclean exit with status 1 without printing an error
+// errQuietExit makes dustit exit with status 1 without printing an error
 // (the command already explained the outcome).
 var errQuietExit = errors.New("exit 1")
 

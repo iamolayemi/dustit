@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/iamolayemi/macclean/internal/doctor"
-	"github.com/iamolayemi/macclean/internal/finder"
-	"github.com/iamolayemi/macclean/internal/targets"
+	"github.com/iamolayemi/dustit/internal/doctor"
+	"github.com/iamolayemi/dustit/internal/finder"
+	"github.com/iamolayemi/dustit/internal/targets"
 )
 
 func writeJSON(v any) error {

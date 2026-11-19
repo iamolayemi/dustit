@@ -1,19 +1,19 @@
-# macclean
+# DustIt
 
-[![CI](https://github.com/iamolayemi/macclean/actions/workflows/ci.yml/badge.svg)](https://github.com/iamolayemi/macclean/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/iamolayemi/macclean)](https://github.com/iamolayemi/macclean/releases)
-[![Go Report Card](https://goreportcard.com/badge/github.com/iamolayemi/macclean)](https://goreportcard.com/report/github.com/iamolayemi/macclean)
+[![CI](https://github.com/iamolayemi/dustit/actions/workflows/ci.yml/badge.svg)](https://github.com/iamolayemi/dustit/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/iamolayemi/dustit)](https://github.com/iamolayemi/dustit/releases)
+[![Go Report Card](https://goreportcard.com/badge/github.com/iamolayemi/dustit)](https://goreportcard.com/report/github.com/iamolayemi/dustit)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 **A careful, open-source disk cleaner and slowdown doctor for macOS, made for developers.**
 
-macclean finds what is eating your disk: caches, `node_modules` in projects you abandoned months
+DustIt finds what is eating your disk: caches, `node_modules` in projects you abandoned months
 ago, old Node/Python/Rust/Java versions, old IDE versions, duplicate files, leftovers from deleted
 apps and Docker's disk image. It removes them only when you say so, keeps a history, and can
-undo anything it moved to the Trash. `macclean doctor` tells you why your Mac is slow.
+undo anything it moved to the Trash. `dustit doctor` tells you why your Mac is slow.
 
 ```text
-$ macclean scan
+$ dustit scan
 ╭────────────────────────┬──────────┬───────┬────────┬───────────────────────────────────╮
 │ CATEGORY               │ SIZE     │ ITEMS │ TYPE   │ WHAT                              │
 ├────────────────────────┼──────────┼───────┼────────┼───────────────────────────────────┤
@@ -28,11 +28,11 @@ $ macclean scan
   Safe to reclaim: 56.3 GB    Needs review: 33.5 GB
 ```
 
-## Why macclean
+## Why DustIt
 
 - **Read-only until you ask.** `scan` never touches anything; `clean` asks before each category;
   `--dry-run` shows exactly what would go.
-- **Undo.** Every removal is logged. `macclean undo` puts back what a run moved to the Trash.
+- **Undo.** Every removal is logged. `dustit undo` puts back what a run moved to the Trash.
 - **Knows developer machines.** `node_modules`, `vendor`, `Pods`, `target`, `.venv`, `.next`, Xcode,
   nvm/pyenv/rustup/asdf/mise/SDKMAN…, npm, pnpm, Yarn, Bun, Cargo, Gradle, Composer, Homebrew,
   JetBrains, Electron apps, Docker Desktop and local AI models.
@@ -45,14 +45,14 @@ $ macclean scan
 
 ## Menu bar app
 
-`macclean bar` lives in the menu bar and looks like macOS's own menus: free space and a capacity
+`DustIt` lives in the menu bar and looks like macOS's own menus: free space and a capacity
 bar, the biggest cleanable items, anything slowing the Mac down, and "Clean Up…", "Review…",
 "Storage Report" and "Undo" one click away. It's a small SwiftUI app on top of the CLI (`--json`),
 so all the safety rules stay in one place. Build it from source (needs the Xcode
 Command Line Tools):
 
 ```bash
-make menubar && mv "dist/macclean bar.app" /Applications/
+make menubar && mv "dist/DustIt.app" /Applications/
 ```
 
 ## Install
@@ -60,35 +60,35 @@ make menubar && mv "dist/macclean bar.app" /Applications/
 **Homebrew:**
 
 ```bash
-brew install iamolayemi/tap/macclean
+brew install iamolayemi/tap/dustit
 ```
 
 **Download a release.** Grab the universal (Intel + Apple Silicon) binary from
-[Releases](https://github.com/iamolayemi/macclean/releases):
+[Releases](https://github.com/iamolayemi/dustit/releases):
 
 ```bash
-curl -L https://github.com/iamolayemi/macclean/releases/latest/download/macclean_Darwin_all.tar.gz | tar xz
+curl -L https://github.com/iamolayemi/dustit/releases/latest/download/dustit_Darwin_all.tar.gz | tar xz
 ```
 ```bash
-sudo mv macclean /usr/local/bin/
+sudo mv dustit /usr/local/bin/
 ```
 
 **With Go (1.24+):**
 
 ```bash
-go install github.com/iamolayemi/macclean@latest
+go install github.com/iamolayemi/dustit@latest
 ```
 
 ## Usage
 
 ```bash
-macclean scan          # what could be freed (-v for the biggest items, --json for scripts)
-macclean ui            # pick what to clean in a full-screen list
-macclean clean -n      # dry run of the safe categories
-macclean clean         # clean safe categories, asking before each
-macclean clean --only stale-deps,old-versions
-macclean undo          # put back what the last run moved to the Trash
-macclean doctor        # why is my Mac slow?
+dustit scan          # what could be freed (-v for the biggest items, --json for scripts)
+dustit ui            # pick what to clean in a full-screen list
+dustit clean -n      # dry run of the safe categories
+dustit clean         # clean safe categories, asking before each
+dustit clean --only stale-deps,old-versions
+dustit undo          # put back what the last run moved to the Trash
+dustit doctor        # why is my Mac slow?
 ```
 
 ### Commands
@@ -115,12 +115,12 @@ macclean doctor        # why is my Mac slow?
 | `apps [--uninstall]`, `leftovers [--clean]` | Apps by last use; data from apps you've deleted |
 | `list [--json]` | Every category and what it removes |
 
-Man pages ship with releases (`man macclean-doctor`), and shell completion (`macclean completion zsh`)
+Man pages ship with releases (`man dustit-doctor`), and shell completion (`dustit completion zsh`)
 suggests category names for `--only`.
 
 ### Categories
 
-**Safe:** rebuilt or re-downloaded automatically. Cleaned by `macclean clean`.
+**Safe:** rebuilt or re-downloaded automatically. Cleaned by `dustit clean`.
 
 | ID | Removes |
 |---|---|
@@ -151,14 +151,14 @@ suggests category names for `--only`.
 | `maven-repo` | `~/.m2/repository` |
 | `docker`, `xcode-archives`, `simulator-devices`, `ios-backups` | Docker prune, Xcode archives, simulator devices, device backups |
 
-### How macclean decides
+### How dustit decides
 
 - **Project folders** are `~/Projects`, `~/Developer`, `~/code`, `~/src`, `~/dev`, `~/workspace`,
   `~/Sites`, `~/Documents` and `~/Desktop`, plus any `project_roots` in your config.
 - **A dependency folder** counts only when its project file sits next to it: `node_modules` next to
   `package.json`, `vendor` next to `composer.json`, `target` next to `Cargo.toml`, … (Go's `vendor/`
   is never touched). A project is **idle** when neither git nor any source file changed for 30 days.
-- **Old versions:** for each tool, macclean keeps your default/current version, the newest one, and
+- **Old versions:** for each tool, DustIt keeps your default/current version, the newest one, and
   any version pinned by a project (`.nvmrc`, `.node-version`, `.python-version`, `.ruby-version`,
   `.tool-versions`, `mise.toml`, `rust-toolchain`, `.go-version`, `.terraform-version`, `.java-version`,
   `.sdkmanrc`, `.fvmrc`, `gradle-wrapper.properties`, `composer.json`'s `php`, Volta's `package.json`).
@@ -170,8 +170,8 @@ suggests category names for `--only`.
 
 ## Configuration
 
-`macclean config edit` opens `~/.config/macclean/config.yaml` (created from a commented example) and
-checks it when you save. `macclean config check` reports syntax errors, misspelled keys and bad
+`dustit config edit` opens `~/.config/dustit/config.yaml` (created from a commented example) and
+checks it when you save. `dustit config check` reports syntax errors, misspelled keys and bad
 values with line numbers.
 
 ```yaml
@@ -196,7 +196,7 @@ categories:                   # your own: the contents of each path are removed
 ## Why is my Mac slow?
 
 ```text
-$ macclean doctor
+$ dustit doctor
 ✗ CPU load: 22.8 tasks waiting on 8 cores (5-min average) — 3× more work than the CPU can run
       177%  WhatsApp                     open for 10h 56m
        76%  mysqld                       open for 2d 17h
@@ -208,18 +208,18 @@ $ macclean doctor
 ✓ Temperature: no throttling
 ```
 
-macclean doesn't "clean RAM" or kill apps behind your back. macOS manages memory itself, and purging
+DustIt doesn't "clean RAM" or kill apps behind your back. macOS manages memory itself, and purging
 it only makes apps slower while they reload. `doctor` tells you which process is actually responsible
 and what to do about it.
 
 ## History and undo
 
-Every removal is recorded in `~/Library/Application Support/macclean/history.jsonl`.
+Every removal is recorded in `~/Library/Application Support/dustit/history.jsonl`.
 
 ```bash
-macclean history               # recent runs: what, how much, trashed or deleted
-macclean history <run-id>      # every item of one run
-macclean undo                  # put back what the last run moved to the Trash
+dustit history               # recent runs: what, how much, trashed or deleted
+dustit history <run-id>      # every item of one run
+dustit undo                  # put back what the last run moved to the Trash
 ```
 
 Caches and dependency folders are deleted permanently (their tools rebuild them); personal files go
@@ -228,16 +228,16 @@ to the Trash and can be undone until you empty it.
 ## Full Disk Access
 
 macOS hides some folders (Trash, Mail, iOS backups, other apps' private data) from terminal apps.
-Without Full Disk Access macclean never reads inside other apps' containers, so macOS won't show
+Without Full Disk Access DustIt never reads inside other apps' containers, so macOS won't show
 "tried to access data from other apps" warnings; it tells you what it skipped instead. To include
-those folders, add your terminal (or macclean bar) under **System Settings → Privacy & Security →
+those folders, add your terminal (or DustIt) under **System Settings → Privacy & Security →
 Full Disk Access**.
 
 ## Contributing
 
 Bug reports, new cleanup categories and fixes are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
 `make docs` builds the man pages and completions; `make demo` records a demo GIF with
-[vhs](https://github.com/charmbracelet/vhs). If you find a way macclean could delete something it
+[vhs](https://github.com/charmbracelet/vhs). If you find a way dustit could delete something it
 shouldn't, please report it privately as described in [SECURITY.md](SECURITY.md).
 
 ## License

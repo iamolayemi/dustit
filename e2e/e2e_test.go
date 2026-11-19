@@ -1,4 +1,4 @@
-// Package e2e runs the real macclean binary against a fake home folder and checks
+// Package e2e runs the real dustit binary against a fake home folder and checks
 // that exactly the right files are removed (and that undo puts them back).
 package e2e
 
@@ -15,11 +15,11 @@ import (
 var bin string
 
 func TestMain(m *testing.M) {
-	dir, err := os.MkdirTemp("", "macclean-e2e-bin")
+	dir, err := os.MkdirTemp("", "dustit-e2e-bin")
 	if err != nil {
 		panic(err)
 	}
-	bin = filepath.Join(dir, "macclean")
+	bin = filepath.Join(dir, "dustit")
 	if out, err := exec.Command("go", "build", "-o", bin, "..").CombinedOutput(); err != nil {
 		panic(string(out))
 	}
@@ -83,13 +83,13 @@ func (h *home) exists(rel string) bool {
 func (h *home) run(args ...string) string {
 	h.t.Helper()
 	cmd := exec.Command(bin, args...)
-	cmd.Env = append(os.Environ(), "PATH=/usr/bin:/bin:/usr/sbin:/sbin", "HOME="+h.root, "NO_COLOR=1", "MACCLEAN_CONFIG="+h.path(".config/macclean/config.yaml"))
+	cmd.Env = append(os.Environ(), "PATH=/usr/bin:/bin:/usr/sbin:/sbin", "HOME="+h.root, "NO_COLOR=1", "DUSTIT_CONFIG="+h.path(".config/dustit/config.yaml"))
 	cmd.Stdin = strings.NewReader("")
 	var stderr strings.Builder
 	cmd.Stderr = &stderr
 	out, err := cmd.Output() // stdout only: progress messages go to stderr
 	if err != nil {
-		h.t.Fatalf("macclean %s: %v\n%s%s", strings.Join(args, " "), err, out, stderr.String())
+		h.t.Fatalf("dustit %s: %v\n%s%s", strings.Join(args, " "), err, out, stderr.String())
 	}
 	return string(out)
 }
@@ -184,9 +184,9 @@ func TestDuplicatesTrashAndUndo(t *testing.T) {
 func TestConfigExcludeIsHonoured(t *testing.T) {
 	h := newHome(t)
 	seed(h)
-	h.mkdir(".config/macclean")
+	h.mkdir(".config/dustit")
 	cfg := "exclude:\n  - ~/Projects/idle/node_modules\n  - ~/Library/Caches/com.example.app\n"
-	if err := os.WriteFile(h.path(".config/macclean/config.yaml"), []byte(cfg), 0o644); err != nil {
+	if err := os.WriteFile(h.path(".config/dustit/config.yaml"), []byte(cfg), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	if out := h.run("config", "check"); !strings.Contains(out, "valid") {
@@ -214,6 +214,27 @@ func TestInstallersAndScreenshots(t *testing.T) {
 	}
 	if !h.exists("Downloads/fresh.dmg") || !h.exists("Desktop/holiday.png") {
 		t.Error("new installers and ordinary pictures must stay")
+	}
+}
+
+func TestMigratesDataFromOldName(t *testing.T) {
+	h := newHome(t)
+	h.write("Library/Application Support/macclean/history.jsonl", 0, 0)
+	if err := os.WriteFile(h.path("Library/Application Support/macclean/history.jsonl"),
+		[]byte(`{"run":"20260101-000000.000","command":"macclean clean","action":"trashed","path":"/x","trash_path":"/y","size":5}`+"\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cmd := exec.Command(bin, "history", "--json")
+	cmd.Env = append(os.Environ(), "PATH=/usr/bin:/bin", "HOME="+h.root, "NO_COLOR=1", "XDG_CONFIG_HOME=")
+	out, err := cmd.Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !h.exists("Library/Application Support/dustit/history.jsonl") || h.exists("Library/Application Support/macclean") {
+		t.Fatal("history should move to the new folder")
+	}
+	if !strings.Contains(string(out), "20260101-000000.000") {
+		t.Errorf("migrated history should be readable: %s", out)
 	}
 }
 

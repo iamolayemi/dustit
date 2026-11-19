@@ -6,9 +6,9 @@ import (
 
 	"github.com/spf13/pflag"
 
-	"github.com/iamolayemi/macclean/internal/finder"
-	"github.com/iamolayemi/macclean/internal/fsx"
-	"github.com/iamolayemi/macclean/internal/ui"
+	"github.com/iamolayemi/dustit/internal/finder"
+	"github.com/iamolayemi/dustit/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/ui"
 )
 
 // sizeFlag is a pflag.Value that accepts "500MB", "1.5G", …
@@ -62,7 +62,7 @@ func printItems(items []finder.Item, meta func(finder.Item) string) {
 
 func trashHint(toTrash bool, freed int64) {
 	if toTrash && freed > 0 {
-		ui.Hint("Space is freed when you empty the Trash (macclean clean --only trash).")
+		ui.Hint("Space is freed when you empty the Trash (dustit clean --only trash).")
 	}
 }
 

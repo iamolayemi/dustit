@@ -11,9 +11,9 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
-	"github.com/iamolayemi/macclean/internal/fsx"
-	"github.com/iamolayemi/macclean/internal/targets"
-	"github.com/iamolayemi/macclean/internal/ui"
+	"github.com/iamolayemi/dustit/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/targets"
+	"github.com/iamolayemi/dustit/internal/ui"
 )
 
 func newUICmd() *cobra.Command {
@@ -28,7 +28,7 @@ func newUICmd() *cobra.Command {
 		Args: cobra.NoArgs,
 		RunE: func(*cobra.Command, []string) error {
 			if !term.IsTerminal(int(os.Stdout.Fd())) || !term.IsTerminal(int(os.Stdin.Fd())) {
-				return errors.New("macclean ui needs an interactive terminal (use scan/clean in scripts)")
+				return errors.New("dustit ui needs an interactive terminal (use scan/clean in scripts)")
 			}
 			stop := ui.Spin("Scanning… (read-only, nothing is deleted)")
 			all := targets.ScanAll(targets.All())
@@ -173,7 +173,7 @@ func (p picker) View() string {
 		return b.String()
 	}
 
-	b.WriteString(titleStyle.Render("macclean — choose what to clean") + "\n")
+	b.WriteString(titleStyle.Render("dustit — choose what to clean") + "\n")
 	for i, r := range p.results {
 		cur := "  "
 		if i == p.cursor {
@@ -224,6 +224,6 @@ func cleanSelected(p picker) error {
 		fmt.Println(msg)
 	}
 	fmt.Printf("\nFreed about %s. Free space: %s → %s\n", ui.Bold.Render(ui.Human(total)), ui.Human(before), ui.Bold.Render(ui.Human(fsx.FreeSpace())))
-	ui.Hint("Undo anything that went to the Trash with: macclean undo")
+	ui.Hint("Undo anything that went to the Trash with: dustit undo")
 	return nil
 }

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/iamolayemi/macclean/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/fsx"
 )
 
 // Node is a folder (or file) with its size and, for the first levels, its biggest children.

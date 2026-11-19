@@ -25,13 +25,13 @@ func newGenCmd(root *cobra.Command) *cobra.Command {
 				}
 			}
 			root.DisableAutoGenTag = true
-			if err := doc.GenManTree(root, &doc.GenManHeader{Title: "MACCLEAN", Section: "1", Source: "macclean " + version}, man); err != nil {
+			if err := doc.GenManTree(root, &doc.GenManHeader{Title: "DUSTIT", Section: "1", Source: "dustit " + version}, man); err != nil {
 				return err
 			}
 			gens := map[string]func(string) error{
-				"macclean.bash": root.GenBashCompletionFile,
-				"_macclean":     root.GenZshCompletionFile,
-				"macclean.fish": func(p string) error { return root.GenFishCompletionFile(p, true) },
+				"dustit.bash": root.GenBashCompletionFile,
+				"_dustit":     root.GenZshCompletionFile,
+				"dustit.fish": func(p string) error { return root.GenFishCompletionFile(p, true) },
 			}
 			for name, gen := range gens {
 				if err := gen(filepath.Join(comp, name)); err != nil {

@@ -14,7 +14,7 @@ func TestLogAndUndo(t *testing.T) {
 	_ = os.MkdirAll(filepath.Dir(trash), 0o755)
 	_ = os.WriteFile(trash, []byte("x"), 0o644)
 
-	Begin("macclean clean")
+	Begin("dustit clean")
 	Log(Trashed, orig, trash, 100)
 	Log(Deleted, filepath.Join(root, "cache"), "", 50)
 

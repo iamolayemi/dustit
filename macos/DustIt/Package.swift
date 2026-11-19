@@ -2,9 +2,9 @@
 import PackageDescription
 
 let package = Package(
-    name: "MacCleanBar",
+    name: "DustIt",
     platforms: [.macOS(.v13)],
     targets: [
-        .executableTarget(name: "MacCleanBar", path: "Sources/MacCleanBar")
+        .executableTarget(name: "DustIt", path: "Sources/DustIt")
     ]
 )

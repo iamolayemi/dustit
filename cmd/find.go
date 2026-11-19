@@ -9,9 +9,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/iamolayemi/macclean/internal/finder"
-	"github.com/iamolayemi/macclean/internal/fsx"
-	"github.com/iamolayemi/macclean/internal/ui"
+	"github.com/iamolayemi/dustit/internal/finder"
+	"github.com/iamolayemi/dustit/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/ui"
 )
 
 func newTopCmd() *cobra.Command {
@@ -39,7 +39,7 @@ func newTopCmd() *cobra.Command {
 			if denied > 0 {
 				ui.Hint(ui.FDATip)
 			}
-			ui.Hint("Drill down with: macclean top <folder>")
+			ui.Hint("Drill down with: dustit top <folder>")
 			return nil
 		},
 	}
@@ -331,7 +331,7 @@ func newAppsCmd() *cobra.Command {
 					freed += sz
 				}
 			}
-			fmt.Printf("\nMoved %s to Trash. Empty it with: macclean clean --only trash\n", ui.Bold.Render(ui.Human(freed)))
+			fmt.Printf("\nMoved %s to Trash. Empty it with: dustit clean --only trash\n", ui.Bold.Render(ui.Human(freed)))
 			return nil
 		},
 	}

@@ -33,7 +33,7 @@ jobs:
       - name: Fuzz the delete guard
         run: go test ./internal/fsx -run '^$' -fuzz FuzzCheckDeletable -fuzztime 30s
       - name: Build
-        run: go build -o macclean . && ./macclean --version && ./macclean list
+        run: go build -o dustit . && ./dustit --version && ./dustit list
 
   lint:
     # Type-checks the macOS code from Linux, so it doesn't wait for a Mac runner.
@@ -59,7 +59,7 @@ jobs:
       - run: make menubar
 
   goreleaser-check:
-    # Needs a Mac: the release runs macclean to generate man pages and completions.
+    # Needs a Mac: the release runs dustit to generate man pages and completions.
     runs-on: macos-15-intel
     timeout-minutes: 20
     steps:

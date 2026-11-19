@@ -2,11 +2,11 @@ import AppKit
 import SwiftUI
 
 @main
-struct MacCleanBarApp: App {
+struct DustItApp: App {
     @StateObject private var model = Model()
 
     init() {
-        // `MacCleanBar --snapshot <dir>` renders the panel with sample data (light + dark) and exits.
+        // `DustIt --snapshot <dir>` renders the panel with sample data (light + dark) and exits.
         let args = CommandLine.arguments
         if let i = args.firstIndex(of: "--snapshot"), i + 1 < args.count {
             Snapshot.render(to: args[i + 1])
@@ -20,7 +20,7 @@ struct MacCleanBarApp: App {
                 .environmentObject(model)
                 .onAppear { model.panelOpened() }
         } label: {
-            Image(systemName: model.isLow ? "externaldrive.badge.exclamationmark" : "internaldrive")
+            Image(nsImage: Icon.menuBar(low: model.isLow))
             if model.showSizeInMenuBar || model.isLow {
                 Text(shortSize(model.free))
             }

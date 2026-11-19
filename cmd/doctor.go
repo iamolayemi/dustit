@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/iamolayemi/macclean/internal/doctor"
-	"github.com/iamolayemi/macclean/internal/ui"
+	"github.com/iamolayemi/dustit/internal/doctor"
+	"github.com/iamolayemi/dustit/internal/ui"
 )
 
 func newDoctorCmd() *cobra.Command {
@@ -22,7 +22,7 @@ thermal throttling, battery health, pending macOS updates, Docker's memory, upti
 startup agents, Homebrew background services and Time Machine snapshots, then tells
 you what to do about each problem. --watch keeps a live view of CPU and memory.
 
-Checks only read. With --fix, macclean offers the few fixes that are safe to automate,
+Checks only read. With --fix, dustit offers the few fixes that are safe to automate,
 asking before each:
   • restart a Homebrew service that has been burning CPU for hours
   • unload and trash startup agents whose program no longer exists
@@ -66,7 +66,7 @@ only makes apps slower while they reload.`,
 			case problems == 0:
 				fmt.Println(ui.Green.Render("\nNothing is slowing your Mac down right now."))
 			case fixes > 0 && !fix:
-				fmt.Printf("\n%d problem(s) found. %d can be fixed automatically: %s\n", problems, fixes, ui.Bold.Render("macclean doctor --fix"))
+				fmt.Printf("\n%d problem(s) found. %d can be fixed automatically: %s\n", problems, fixes, ui.Bold.Render("dustit doctor --fix"))
 			default:
 				fmt.Printf("\n%d problem(s) found — see the suggestions above.\n", problems)
 			}
@@ -87,7 +87,7 @@ only makes apps slower while they reload.`,
 					}
 				}
 			}
-			ui.Hint("\nRun `macclean doctor` again in a minute to see the effect.")
+			ui.Hint("\nRun `dustit doctor` again in a minute to see the effect.")
 			return nil
 		},
 	}
@@ -107,7 +107,7 @@ func watchDoctor(every time.Duration) error {
 	for {
 		findings := doctor.Quick(ui.Human)
 		fmt.Print("\033[H\033[2J") // clear screen
-		fmt.Printf("%s  %s\n\n", ui.Bold.Render("macclean doctor --watch"), ui.Dim.Render(time.Now().Format("15:04:05")+" · every "+every.String()+" · Ctrl-C to stop"))
+		fmt.Printf("%s  %s\n\n", ui.Bold.Render("dustit doctor --watch"), ui.Dim.Render(time.Now().Format("15:04:05")+" · every "+every.String()+" · Ctrl-C to stop"))
 		for _, f := range findings {
 			fmt.Printf("%s %s %s\n", icon(f.Severity), ui.Bold.Render(f.Check+":"), f.Summary)
 			if f.Check == "CPU load" || f.Check == "Memory" {

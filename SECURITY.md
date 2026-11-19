@@ -1,14 +1,14 @@
 # Security Policy
 
-macclean deletes files, so a bug that makes it remove something it shouldn't is treated as a
+DustIt deletes files, so a bug that makes it remove something it shouldn't is treated as a
 security issue.
 
 ## Reporting
 
 Please **don't open a public issue**. Report privately through
-[GitHub security advisories](https://github.com/iamolayemi/macclean/security/advisories/new) with:
+[GitHub security advisories](https://github.com/iamolayemi/dustit/security/advisories/new) with:
 
-- the command you ran and the macclean version (`macclean --version`)
+- the command you ran and the dustit version (`dustit --version`)
 - what was removed (or would have been, with `--dry-run`) and why that's wrong
 - your macOS version
 

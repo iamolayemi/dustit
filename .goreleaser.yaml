@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 version: 2
-project_name: macclean
+project_name: dustit
 
 before:
   hooks:
@@ -14,9 +14,9 @@ builds:
     flags: [-trimpath]
     ldflags:
       - -s -w
-      - -X github.com/iamolayemi/macclean/cmd.version={{ .Version }}
-      - -X github.com/iamolayemi/macclean/cmd.commit={{ .ShortCommit }}
-      - -X github.com/iamolayemi/macclean/cmd.date={{ .Date }}
+      - -X github.com/iamolayemi/dustit/cmd.version={{ .Version }}
+      - -X github.com/iamolayemi/dustit/cmd.commit={{ .ShortCommit }}
+      - -X github.com/iamolayemi/dustit/cmd.date={{ .Date }}
 
 universal_binaries:
   - replace: false
@@ -38,13 +38,13 @@ changelog:
   filters:
     exclude: ["^docs:", "^test:", "^ci:", "^chore:"]
 
-# `brew install iamolayemi/tap/macclean`. Needs a HOMEBREW_TAP_GITHUB_TOKEN secret that can
+# `brew install iamolayemi/tap/dustit`. Needs a HOMEBREW_TAP_GITHUB_TOKEN secret that can
 # push to iamolayemi/homebrew-tap; without it the cask step is skipped and the release still ships.
 homebrew_casks:
-  - name: macclean
-    binaries: [macclean]
+  - name: dustit
+    binaries: [dustit]
     directory: Casks
-    homepage: https://github.com/iamolayemi/macclean
+    homepage: https://github.com/iamolayemi/dustit
     description: Careful disk cleaner for macOS, made for developers
     license: MIT
     repository:
@@ -55,17 +55,17 @@ homebrew_casks:
     commit_author:
       name: goreleaserbot
       email: bot@goreleaser.com
-    commit_msg_template: "macclean {{ .Tag }}"
+    commit_msg_template: "dustit {{ .Tag }}"
     manpages:
-      - generated/man/macclean.1
+      - generated/man/dustit.1
     completions:
-      bash: generated/completions/macclean.bash
-      zsh: generated/completions/_macclean
-      fish: generated/completions/macclean.fish
+      bash: generated/completions/dustit.bash
+      zsh: generated/completions/_dustit
+      fish: generated/completions/dustit.fish
     hooks:
       post:
         # Release binaries aren't notarized; clear the quarantine flag so macOS lets them run.
         install: |
           if OS.mac?
-            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/macclean"]
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/dustit"]
           end

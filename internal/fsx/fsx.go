@@ -13,7 +13,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/iamolayemi/macclean/internal/history"
+	"github.com/iamolayemi/dustit/internal/history"
 )
 
 // Home is the user's home folder. It is set during package initialisation so other
@@ -75,7 +75,7 @@ func IsDir(p string) bool { fi, err := os.Stat(p); return err == nil && fi.IsDir
 
 // Other apps' private data (sandbox containers) is protected by macOS: reading inside it
 // without Full Disk Access makes macOS show a "tried to access data from other apps"
-// warning. macclean only looks inside when it has Full Disk Access.
+// warning. DustIt only looks inside when it has Full Disk Access.
 var (
 	fdaOnce sync.Once
 	fda     bool

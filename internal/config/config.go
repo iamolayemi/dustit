@@ -1,4 +1,4 @@
-// Package config loads ~/.config/macclean/config.yaml.
+// Package config loads ~/.config/dustit/config.yaml.
 package config
 
 import (
@@ -44,9 +44,9 @@ func Defaults() Config {
 	return Config{StaleDays: 30, OldFileDays: 365, OldFileMin: "100MB", DuplicateMin: "5MB", DownloadDays: 90}
 }
 
-// Path is $MACCLEAN_CONFIG, or $XDG_CONFIG_HOME/macclean/config.yaml, or ~/.config/macclean/config.yaml.
+// Path is $DUSTIT_CONFIG, or $XDG_CONFIG_HOME/dustit/config.yaml, or ~/.config/dustit/config.yaml.
 func Path() string {
-	if p := os.Getenv("MACCLEAN_CONFIG"); p != "" {
+	if p := os.Getenv("DUSTIT_CONFIG"); p != "" {
 		return p
 	}
 	base := os.Getenv("XDG_CONFIG_HOME")
@@ -54,7 +54,7 @@ func Path() string {
 		home, _ := os.UserHomeDir()
 		base = filepath.Join(home, ".config")
 	}
-	return filepath.Join(base, "macclean", "config.yaml")
+	return filepath.Join(base, "dustit", "config.yaml")
 }
 
 // Load reads the config file into Current. A missing file is fine.
@@ -110,10 +110,10 @@ func (c Config) IsDisabled(id string) bool {
 }
 
 // Example is a commented starter config.
-const Example = `# macclean configuration
-# Docs: https://github.com/iamolayemi/macclean#configuration
+const Example = `# dustit configuration
+# Docs: https://github.com/iamolayemi/dustit#configuration
 
-# Paths macclean must never remove (or remove anything inside). Globs work.
+# Paths dustit must never remove (or remove anything inside). Globs work.
 exclude:
   # - ~/Projects/important-client/node_modules
   # - ~/Library/Caches/com.example.keepme
@@ -134,7 +134,7 @@ duplicate_folders:    # duplicates: only look in these folders (default: persona
   # - ~/Documents
 download_days: 90     # old-downloads: downloads older than this
 
-# Categories to turn off completely (see: macclean list).
+# Categories to turn off completely (see: dustit list).
 disabled:
   # - electron-caches
 
@@ -144,7 +144,7 @@ categories:
   #   name: Unity cache
   #   description: Unity's package and asset cache
   #   paths: [~/Library/Unity/cache]
-  #   risk: safe          # safe = cleaned by "macclean clean"; review = only with --only/--all
+  #   risk: safe          # safe = cleaned by "dustit clean"; review = only with --only/--all
   #   trash: false        # true = move to Trash instead of deleting
   #   min_age_days: 0     # only entries older than this
 `

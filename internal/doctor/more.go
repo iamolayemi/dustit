@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/iamolayemi/macclean/internal/sh"
+	"github.com/iamolayemi/dustit/internal/sh"
 )
 
 func checkBattery() Finding {

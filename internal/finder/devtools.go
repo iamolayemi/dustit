@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/iamolayemi/macclean/internal/fsx"
-	"github.com/iamolayemi/macclean/internal/sh"
+	"github.com/iamolayemi/dustit/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/sh"
 )
 
 // ElectronCaches finds Chromium/Electron cache folders inside ~/Library/Application Support.

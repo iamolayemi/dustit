@@ -2,7 +2,7 @@
 
 ## How I tested
 - [ ] `make test` passes
-- [ ] Ran `macclean scan -v` / `clean --only <id> -n` on macOS ___
+- [ ] Ran `dustit scan -v` / `clean --only <id> -n` on macOS ___
 
 ## Safety
 - [ ] All removals go through `fsx.Remove`

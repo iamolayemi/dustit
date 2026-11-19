@@ -1,10 +1,10 @@
-/macclean
+/dustit
 /dist/
 *.test
 *.out
 coverage.*
 .DS_Store
 /generated/
-/macclean-report*.html
-/macos/MacCleanBar/.build/
+/dustit-report*.html
+/macos/DustIt/.build/
 /.claude/

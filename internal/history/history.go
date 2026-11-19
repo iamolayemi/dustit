@@ -1,4 +1,4 @@
-// Package history keeps a log of everything macclean removes, so runs can be
+// Package history keeps a log of everything DustIt removes, so runs can be
 // reviewed and items that went to the Trash can be put back.
 package history
 
@@ -37,7 +37,7 @@ type Record struct {
 var (
 	mu       sync.Mutex
 	run      = newRunID()
-	command  = "macclean"
+	command  = "dustit"
 	category string
 	// Dir can be overridden in tests.
 	Dir = defaultDir()
@@ -45,7 +45,7 @@ var (
 
 func defaultDir() string {
 	home, _ := os.UserHomeDir()
-	return filepath.Join(home, "Library", "Application Support", "macclean")
+	return filepath.Join(home, "Library", "Application Support", "dustit")
 }
 
 func newRunID() string { return time.Now().Format("20060102-150405.000") }
@@ -172,7 +172,7 @@ func Find(runs []Run, id string) (Run, error) {
 	if id == "" {
 		return Run{}, errors.New("nothing to undo: no run has items in the Trash")
 	}
-	return Run{}, fmt.Errorf("no run with id %q (see: macclean history)", id)
+	return Run{}, fmt.Errorf("no run with id %q (see: dustit history)", id)
 }
 
 // UndoResult reports what Undo did.
@@ -188,7 +188,7 @@ type UndoResult struct {
 // Undo moves a run's trashed items back to where they were.
 func Undo(r Run) UndoResult {
 	var res UndoResult
-	Begin("macclean undo " + r.ID)
+	Begin("dustit undo " + r.ID)
 	for _, rec := range r.Records {
 		switch {
 		case rec.Action == Deleted:

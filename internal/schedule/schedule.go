@@ -1,4 +1,4 @@
-// Package schedule installs a launchd agent that runs `macclean clean` periodically.
+// Package schedule installs a launchd agent that runs `dustit clean` periodically.
 package schedule
 
 import (
@@ -14,7 +14,7 @@ import (
 )
 
 // Label is the launchd job label.
-const Label = "com.github.iamolayemi.macclean"
+const Label = "com.github.iamolayemi.dustit"
 
 // DefaultCategories are cleaned on a schedule unless the user picks others: the safe
 // categories that can't surprise anyone. Dependency folders, the Trash and caches of
@@ -41,9 +41,9 @@ func home() string { h, _ := os.UserHomeDir(); return h }
 func PlistPath() string { return filepath.Join(home(), "Library", "LaunchAgents", Label+".plist") }
 
 // LogPath is where scheduled runs write their output (kept out of ~/Library/Logs,
-// which macclean itself cleans).
+// which dustit itself cleans).
 func LogPath() string {
-	return filepath.Join(home(), "Library", "Application Support", "macclean", "scheduled.log")
+	return filepath.Join(home(), "Library", "Application Support", "dustit", "scheduled.log")
 }
 
 // Weekdays maps names to launchd weekday numbers.
@@ -106,10 +106,10 @@ func xmlEscape(s string) string {
 	return r.Replace(s)
 }
 
-// Binary picks a stable path to macclean: the one on PATH (e.g. /opt/homebrew/bin/macclean,
+// Binary picks a stable path to dustit: the one on PATH (e.g. /opt/homebrew/bin/dustit,
 // which survives upgrades), else the running executable.
 func Binary() (string, error) {
-	if p, err := exec.LookPath("macclean"); err == nil {
+	if p, err := exec.LookPath("dustit"); err == nil {
 		if abs, err := filepath.Abs(p); err == nil {
 			return abs, nil
 		}

@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/iamolayemi/macclean/internal/privacy"
-	"github.com/iamolayemi/macclean/internal/ui"
+	"github.com/iamolayemi/dustit/internal/privacy"
+	"github.com/iamolayemi/dustit/internal/ui"
 )
 
 func newPrivacyCmd() *cobra.Command {
@@ -21,7 +21,7 @@ updates, password after sleep, sharing services, AirDrop, Find My, automatic log
 account and (with Full Disk Access) which apps have powerful permissions.
 
 Nothing is changed. Open the right System Settings pane for any check with:
-  macclean privacy --open <id>`,
+  dustit privacy --open <id>`,
 		Args: cobra.NoArgs,
 		RunE: func(*cobra.Command, []string) error {
 			checks := privacy.Run()
@@ -31,7 +31,7 @@ Nothing is changed. Open the right System Settings pane for any check with:
 						return exec.Command("open", c.Pane).Run()
 					}
 				}
-				return fmt.Errorf("no check called %q (ids are shown on the right in `macclean privacy`)", open)
+				return fmt.Errorf("no check called %q (ids are shown on the right in `dustit privacy`)", open)
 			}
 			if asJSON {
 				return writeJSON(checks)
@@ -64,7 +64,7 @@ Nothing is changed. Open the right System Settings pane for any check with:
 			default:
 				fmt.Print("Everything looks good. ")
 			}
-			ui.Hint("Open a setting: macclean privacy --open <id>")
+			ui.Hint("Open a setting: dustit privacy --open <id>")
 			return nil
 		},
 	}

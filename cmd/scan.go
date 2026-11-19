@@ -7,10 +7,10 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 
-	"github.com/iamolayemi/macclean/internal/finder"
-	"github.com/iamolayemi/macclean/internal/fsx"
-	"github.com/iamolayemi/macclean/internal/targets"
-	"github.com/iamolayemi/macclean/internal/ui"
+	"github.com/iamolayemi/dustit/internal/finder"
+	"github.com/iamolayemi/dustit/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/targets"
+	"github.com/iamolayemi/dustit/internal/ui"
 )
 
 func newScanCmd() *cobra.Command {
@@ -38,7 +38,7 @@ func newScanCmd() *cobra.Command {
 				fmt.Println()
 			}
 			fmt.Printf("Free space: %s\n", ui.Bold.Render(ui.Human(fsx.FreeSpace())))
-			ui.Hint("Next: `macclean clean` (safe categories) or `macclean clean --only old-files,duplicates`")
+			ui.Hint("Next: `dustit clean` (safe categories) or `dustit clean --only old-files,duplicates`")
 			return nil
 		},
 	}

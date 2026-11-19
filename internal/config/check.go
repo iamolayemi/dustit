@@ -44,7 +44,7 @@ func lineOf(err error) int {
 func Check(knownIDs []string) ([]Problem, error) {
 	b, err := os.ReadFile(Path())
 	if errors.Is(err, os.ErrNotExist) {
-		return nil, fmt.Errorf("%s doesn't exist yet — create it with: macclean config edit", Path())
+		return nil, fmt.Errorf("%s doesn't exist yet — create it with: dustit config edit", Path())
 	}
 	if err != nil {
 		return nil, err
@@ -122,7 +122,7 @@ func Check(knownIDs []string) ([]Problem, error) {
 	}
 	for _, d := range c.Disabled {
 		if !known[d] && !custom[d] {
-			add(false, line("disabled"), "disabled: %q isn't a category (see: macclean list)", d)
+			add(false, line("disabled"), "disabled: %q isn't a category (see: dustit list)", d)
 		}
 	}
 	seen := map[string]bool{}

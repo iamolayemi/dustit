@@ -9,8 +9,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/iamolayemi/macclean/internal/fsx"
-	"github.com/iamolayemi/macclean/internal/sh"
+	"github.com/iamolayemi/dustit/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/sh"
 )
 
 // BigGitRepos finds repositories whose .git folder is at least minB. Cleaning runs
@@ -99,7 +99,7 @@ func DevVMs() []Item {
 				del = []string{"k3d", "cluster", "delete", n}
 			}
 			out = append(out, Item{Path: tool.kind + " cluster " + n, Cmd: del,
-				Note: tool.kind + " cluster (lives in Docker; size shows in `macclean docker`)"})
+				Note: tool.kind + " cluster (lives in Docker; size shows in `dustit docker`)"})
 		}
 	}
 	if sh.Has("limactl") {

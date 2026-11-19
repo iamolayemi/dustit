@@ -5,9 +5,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/iamolayemi/macclean/internal/fsx"
-	"github.com/iamolayemi/macclean/internal/history"
-	"github.com/iamolayemi/macclean/internal/ui"
+	"github.com/iamolayemi/dustit/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/history"
+	"github.com/iamolayemi/dustit/internal/ui"
 )
 
 func newHistoryCmd() *cobra.Command {
@@ -15,7 +15,7 @@ func newHistoryCmd() *cobra.Command {
 	var asJSON bool
 	c := &cobra.Command{
 		Use:   "history [run-id]",
-		Short: "List what macclean removed, or the items of one run",
+		Short: "List what dustit removed, or the items of one run",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			records, err := history.Load()
@@ -71,7 +71,7 @@ func newHistoryCmd() *cobra.Command {
 				fmt.Printf("  %s  %-14s %9s  %-24s %-32s %s\n", ui.Bold.Render(r.ID), ui.Ago(r.Time), ui.Human(r.Bytes), what, r.Command, status)
 			}
 			fmt.Println()
-			ui.Hint("Details: macclean history <run-id>   Put trashed items back: macclean undo [run-id]")
+			ui.Hint("Details: dustit history <run-id>   Put trashed items back: dustit undo [run-id]")
 			ui.Hint("Log file: %s", fsx.Pretty(history.File()))
 			return nil
 		},

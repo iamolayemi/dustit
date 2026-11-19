@@ -59,7 +59,7 @@ struct PanelView: View {
             MenuDivider()
             MenuItem(title: "Scan Now", shortcut: "⌘R", enabled: !model.busy) { Task { await model.refresh() } }
                 .keyboardShortcut("r")
-            MenuItem(title: "Quit macclean bar", shortcut: "⌘Q") { NSApp.terminate(nil) }
+            MenuItem(title: "Quit DustIt", shortcut: "⌘Q") { NSApp.terminate(nil) }
                 .keyboardShortcut("q")
             if let updated = model.updated, !model.scanning {
                 Text("Updated \(updated, format: .relative(presentation: .named))")

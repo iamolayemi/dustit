@@ -7,9 +7,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/iamolayemi/macclean/internal/fsx"
-	"github.com/iamolayemi/macclean/internal/targets"
-	"github.com/iamolayemi/macclean/internal/ui"
+	"github.com/iamolayemi/dustit/internal/fsx"
+	"github.com/iamolayemi/dustit/internal/targets"
+	"github.com/iamolayemi/dustit/internal/ui"
 )
 
 func newCleanCmd() *cobra.Command {
@@ -21,10 +21,10 @@ func newCleanCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "clean",
 		Short: "Clean categories (safe ones by default; asks before each)",
-		Example: `  macclean clean --dry-run
-  macclean clean
-  macclean clean --only npm-cache,stale-deps
-  macclean clean --all`,
+		Example: `  dustit clean --dry-run
+  dustit clean
+  dustit clean --only npm-cache,stale-deps
+  dustit clean --all`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			sel, err := targets.Select(only, all)
@@ -88,11 +88,11 @@ func newCleanCmd() *cobra.Command {
 			}
 			after := fsx.FreeSpace()
 			if notify {
-				sendNotification("macclean", fmt.Sprintf("Freed %s · %s free", ui.Human(total), ui.Human(after)))
+				sendNotification("dustit", fmt.Sprintf("Freed %s · %s free", ui.Human(total), ui.Human(after)))
 			}
 			fmt.Printf("Freed about %s. Free space: %s → %s\n", ui.Bold.Render(ui.Human(total)), ui.Human(before), ui.Bold.Render(ui.Human(after)))
 			if trashed {
-				ui.Hint("Some items were moved to Trash. Empty it with: macclean clean --only trash")
+				ui.Hint("Some items were moved to Trash. Empty it with: dustit clean --only trash")
 			}
 			if after-before < total/2 && total > 1e9 {
 				ui.Hint("macOS can take a moment to report freed space; Time Machine local snapshots can also hold it\n(list them with: tmutil listlocalsnapshots /).")
@@ -101,7 +101,7 @@ func newCleanCmd() *cobra.Command {
 		},
 	}
 	f := c.Flags()
-	f.StringSliceVar(&only, "only", nil, "comma-separated category `ids` to clean (see: macclean list)")
+	f.StringSliceVar(&only, "only", nil, "comma-separated category `ids` to clean (see: dustit list)")
 	f.BoolVar(&all, "all", false, "include 'review' categories too")
 	f.BoolVarP(&yes, "yes", "y", false, "don't ask before each category")
 	f.BoolVarP(&dry, "dry-run", "n", false, "show what would be removed without removing anything")
@@ -135,7 +135,7 @@ func newListCmd() *cobra.Command {
 				return
 			}
 			for _, risk := range []targets.Risk{targets.Safe, targets.Review} {
-				title := "Safe (cleaned by `macclean clean`):"
+				title := "Safe (cleaned by `dustit clean`):"
 				if risk == targets.Review {
 					title = "Review (only cleaned with --only <id> or --all):"
 				}
