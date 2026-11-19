@@ -3,6 +3,7 @@ package fsx
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -78,4 +79,33 @@ func TestExcludes(t *testing.T) {
 	if err := CheckDeletable(H("Projects/keep/node_modules")); err == nil {
 		t.Error("excluded paths must be refused")
 	}
+}
+
+// FuzzCheckDeletable: whatever path it is given, CheckDeletable may only approve paths
+// strictly inside the home folder that are not protected or in a forbidden area.
+func FuzzCheckDeletable(f *testing.F) {
+	for _, s := range []string{"/", Home, H("Library"), H("Library/Caches/x"), H("../x"), H("a/../../b"),
+		H("Library/Keychains/k"), H(".ssh"), "relative", H("Documents"), H("Projects/x/node_modules"), H("./Library//Preferences/../Preferences/p")} {
+		f.Add(s)
+	}
+	f.Fuzz(func(t *testing.T, p string) {
+		if CheckDeletable(p) != nil {
+			return
+		}
+		c := filepath.Clean(p)
+		rel, err := filepath.Rel(Home, c)
+		if err != nil || rel == "." || rel == ".." || strings.HasPrefix(rel, "../") {
+			t.Fatalf("approved %q outside home", p)
+		}
+		for _, pr := range protectedRel {
+			if rel == pr {
+				t.Fatalf("approved protected %q", p)
+			}
+		}
+		for _, fb := range forbiddenRel {
+			if rel == fb || strings.HasPrefix(rel, fb+"/") {
+				t.Fatalf("approved forbidden %q", p)
+			}
+		}
+	})
 }
