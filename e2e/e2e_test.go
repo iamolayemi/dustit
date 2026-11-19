@@ -198,6 +198,25 @@ func TestConfigExcludeIsHonoured(t *testing.T) {
 	}
 }
 
+func TestInstallersAndScreenshots(t *testing.T) {
+	h := newHome(t)
+	month := 40 * 24 * time.Hour
+	h.write("Downloads/Some App 2.1.dmg", 2_000, month)
+	h.write("Downloads/fresh.dmg", 2_000, 0)
+	h.write("Desktop/Screenshot 2026-01-02 at 10.00.00.png", 3_000, month)
+	h.write("Desktop/holiday.png", 3_000, month)
+	h.run("clean", "--only", "installers,screenshots", "--yes")
+	if h.exists("Downloads/Some App 2.1.dmg") || h.exists("Desktop/Screenshot 2026-01-02 at 10.00.00.png") {
+		t.Error("old installers and screenshots should go to the Trash")
+	}
+	if !h.exists(".Trash/Some App 2.1.dmg") {
+		t.Error("installers must be trashed, not deleted")
+	}
+	if !h.exists("Downloads/fresh.dmg") || !h.exists("Desktop/holiday.png") {
+		t.Error("new installers and ordinary pictures must stay")
+	}
+}
+
 func TestDryRunChangesNothing(t *testing.T) {
 	h := newHome(t)
 	seed(h)

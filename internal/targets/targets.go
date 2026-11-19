@@ -69,6 +69,18 @@ func BuiltinIDs() []string {
 	return ids
 }
 
+// duplicateRoots are the config's duplicate_folders, or personal and project folders.
+func duplicateRoots(cfg config.Config) []string {
+	if len(cfg.DuplicateFolders) == 0 {
+		return finder.UserFileRoots(true)
+	}
+	var out []string
+	for _, f := range cfg.DuplicateFolders {
+		out = append(out, fsx.Expand(f))
+	}
+	return finder.DedupeRoots(out)
+}
+
 func size(s string, def int64) int64 {
 	if n, err := humanize.ParseBytes(s); err == nil {
 		return int64(n)
@@ -186,8 +198,17 @@ func builtin(cfg config.Config) []*Target {
 		{ID: "duplicates", Name: "Duplicate files", Risk: Review, ToTrash: true,
 			Desc: fmt.Sprintf("Extra copies of identical files ≥ %s in your personal and project folders; the first copy is kept — moved to Trash", cfg.DuplicateMin),
 			Find: func() []finder.Item {
-				return finder.DupeExtras(finder.Dupes(finder.UserFileRoots(true), size(cfg.DuplicateMin, 5e6)))
+				return finder.DupeExtras(finder.Dupes(duplicateRoots(cfg), size(cfg.DuplicateMin, 5e6)))
 			}},
+		{ID: "installers", Name: "Installers & disk images", Risk: Review, ToTrash: true,
+			Desc: ".dmg, .pkg and .xip files older than 7 days in Downloads and on the Desktop — moved to Trash",
+			Find: func() []finder.Item { return finder.Installers(7) }},
+		{ID: "screenshots", Name: "Old screenshots & recordings", Risk: Review, ToTrash: true,
+			Desc: "Screenshots and screen recordings older than 30 days (Desktop, Downloads, Pictures, your screenshot folder) — moved to Trash",
+			Find: func() []finder.Item { return finder.Screenshots(30) }},
+		{ID: "large-videos", Name: "Large videos untouched for 90 days", Risk: Review, ToTrash: true,
+			Desc: "Video files ≥ 500 MB in Movies, Downloads, Desktop and Documents not changed in 90 days — moved to Trash",
+			Find: func() []finder.Item { return finder.LargeVideos(90, 500e6) }},
 		{ID: "old-downloads", Name: fmt.Sprintf("Downloads older than %d days", cfg.DownloadDays), Risk: Review, ToTrash: true,
 			Desc:       "Moved to Trash, not deleted — check before emptying",
 			Dirs:       []string{h("Downloads")},

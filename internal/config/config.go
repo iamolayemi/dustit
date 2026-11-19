@@ -24,15 +24,16 @@ type Category struct {
 
 // Config is the user's settings. Zero values mean "use the default".
 type Config struct {
-	Exclude      []string   `yaml:"exclude"`
-	ProjectRoots []string   `yaml:"project_roots"`
-	StaleDays    int        `yaml:"stale_days"`
-	OldFileDays  int        `yaml:"old_file_days"`
-	OldFileMin   string     `yaml:"old_file_min"`
-	DuplicateMin string     `yaml:"duplicate_min"`
-	DownloadDays int        `yaml:"download_days"`
-	Disabled     []string   `yaml:"disabled"`
-	Categories   []Category `yaml:"categories"`
+	Exclude          []string   `yaml:"exclude"`
+	ProjectRoots     []string   `yaml:"project_roots"`
+	StaleDays        int        `yaml:"stale_days"`
+	OldFileDays      int        `yaml:"old_file_days"`
+	OldFileMin       string     `yaml:"old_file_min"`
+	DuplicateMin     string     `yaml:"duplicate_min"`
+	DuplicateFolders []string   `yaml:"duplicate_folders"`
+	DownloadDays     int        `yaml:"download_days"`
+	Disabled         []string   `yaml:"disabled"`
+	Categories       []Category `yaml:"categories"`
 }
 
 // Current is the loaded configuration (defaults until Load succeeds).
@@ -128,6 +129,9 @@ stale_days: 30        # stale-deps: projects untouched this long
 old_file_days: 365    # old-files: files not changed this long…
 old_file_min: 100MB   # …and at least this big
 duplicate_min: 5MB    # duplicates: ignore smaller files
+duplicate_folders:    # duplicates: only look in these folders (default: personal + project folders)
+  # - ~/Pictures
+  # - ~/Documents
 download_days: 90     # old-downloads: downloads older than this
 
 # Categories to turn off completely (see: macclean list).

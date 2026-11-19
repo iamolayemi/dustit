@@ -167,6 +167,17 @@ func LastTouched(st *syscall.Stat_t) time.Time {
 	return t
 }
 
+// AddedOrEdited is the later of when the file was created on this disk and when its contents
+// last changed. Unlike LastTouched it ignores metadata changes, which suits downloads,
+// installers and screenshots.
+func AddedOrEdited(st *syscall.Stat_t) time.Time {
+	t := time.Unix(st.Mtimespec.Unix())
+	if b := time.Unix(st.Birthtimespec.Unix()); b.After(t) {
+		t = b
+	}
+	return t
+}
+
 // ModTime is LastTouched for a path; missing paths count as "now".
 func ModTime(p string) time.Time {
 	var st syscall.Stat_t

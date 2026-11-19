@@ -102,6 +102,11 @@ func Check(knownIDs []string) ([]Problem, error) {
 			add(false, line("exclude"), "exclude: %s doesn't exist (still honoured if it appears later)", e)
 		}
 	}
+	for _, r := range c.DuplicateFolders {
+		if fi, err := os.Stat(expand(r)); err != nil || !fi.IsDir() {
+			add(false, line("duplicate_folders"), "duplicate_folders: %s isn't a folder", r)
+		}
+	}
 	for _, r := range c.ProjectRoots {
 		if fi, err := os.Stat(expand(r)); err != nil || !fi.IsDir() {
 			add(false, line("project_roots"), "project_roots: %s isn't a folder", r)
@@ -161,7 +166,7 @@ func errEOF(err error) error {
 
 var (
 	unknownField = regexp.MustCompile(`field (\S+) not found`)
-	settingKeys  = []string{"exclude", "project_roots", "stale_days", "old_file_days", "old_file_min", "duplicate_min", "download_days", "disabled", "categories"}
+	settingKeys  = []string{"exclude", "project_roots", "stale_days", "old_file_days", "old_file_min", "duplicate_min", "duplicate_folders", "download_days", "disabled", "categories"}
 	categoryKeys = []string{"id", "name", "description", "paths", "risk", "trash", "min_age_days"}
 )
 
