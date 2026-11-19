@@ -56,16 +56,17 @@ Nothing is deleted without asking unless you pass --yes. Start with:
 	root.AddGroup(
 		&cobra.Group{ID: "clean", Title: "Clean up:"},
 		&cobra.Group{ID: "find", Title: "Find what uses space:"},
-		&cobra.Group{ID: "speed", Title: "Speed:"},
+		&cobra.Group{ID: "speed", Title: "Speed, privacy & security:"},
 	)
 	for _, c := range []*cobra.Command{newConfigCmd(), newScheduleCmd(), newAlertCmd()} {
 		c.GroupID = "clean"
 		root.AddCommand(c)
 	}
 	root.AddCommand(newGenCmd(root))
-	doctorCmd := newDoctorCmd()
-	doctorCmd.GroupID = "speed"
-	root.AddCommand(doctorCmd)
+	for _, c := range []*cobra.Command{newDoctorCmd(), newPrivacyCmd()} {
+		c.GroupID = "speed"
+		root.AddCommand(c)
+	}
 	for _, c := range []*cobra.Command{newScanCmd(), newCleanCmd(), newUICmd(), newListCmd(), newDockerCmd(), newHistoryCmd(), newUndoCmd()} {
 		c.GroupID = "clean"
 		root.AddCommand(c)
