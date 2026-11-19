@@ -28,6 +28,7 @@ You need Go 1.24+ and macOS: the code uses Darwin-specific file metadata.
 | `internal/config` | `~/.config/macclean/config.yaml`: loading and `config check` |
 | `internal/schedule` | The launchd agents for scheduled runs and low-disk alerts |
 | `internal/report` | The HTML report and its treemap |
+| `internal/privacy` | The read-only privacy & security check |
 | `e2e/` | End-to-end tests: the real binary against a throwaway home folder |
 | `macos/MacCleanBar` | The SwiftUI menu bar app (`make menubar`) |
 | `internal/ui`, `internal/sh` | Styling, prompts, running external commands |

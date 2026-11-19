@@ -26,6 +26,21 @@ and this project uses [Semantic Versioning](https://semver.org/).
 - `doctor` checks Spotlight indexing and browser memory.
 - macclean bar: a menu bar app (`make menubar`).
 - End-to-end tests against a fake home folder and fuzzing of the delete guard in CI.
+- `storage`: disk usage in plain groups with app owners; the report leads with it.
+- `startup`: launch agents and daemons with owners and state, orphans first; disable, enable, remove orphans.
+- `privacy`: read-only security and privacy check with links to System Settings.
+- `installers`, `screenshots`, `large-videos`, `editor-orphans`, `ai-tool-data`, `agent-worktrees`
+  and `git-branches` categories; `duplicate_folders` setting.
+- Caches of apps that are open are left alone.
+
+### Changed
+- macclean bar redesigned to look and behave like a native macOS menu; its actions no longer need
+  the Automation permission.
+- The HTML report has a storage bar, a calmer map and the exact command for every category.
+
+### Fixed
+- Other apps' private data is only read with Full Disk Access, so macOS no longer shows
+  "tried to access data from other apps" warnings.
 
 ### Fixed
 - `dot-cache` no longer removes corepack's pnpm/yarn binaries.

@@ -55,7 +55,7 @@ func StorageFrom(tree *Node) []Group {
 			projects += level1[rel]
 		}
 	}
-	var dev int64 = projects + level2["Library/Developer"] + level2["Library/pnpm"] + docker
+	dev := projects + level2["Library/Developer"] + level2["Library/pnpm"] + docker
 	for _, d := range devDotFolders {
 		dev += level1[d]
 	}
@@ -80,7 +80,7 @@ func StorageFrom(tree *Node) []Group {
 		{"Developer files", "macclean clean --only stale-deps,old-versions · macclean docker", dev},
 		{"Trash", "macclean clean --only trash", level1[".Trash"]},
 	}
-	var counted int64 = level1["Applications"] // ~/Applications is inside home and already in "Applications"
+	counted := level1["Applications"] // ~/Applications is inside home and already in "Applications"
 	for _, g := range groups {
 		if g.Name != "Applications" {
 			counted += g.Size
