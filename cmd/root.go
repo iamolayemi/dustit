@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"runtime"
@@ -57,7 +58,7 @@ Nothing is deleted without asking unless you pass --yes. Start with:
 		&cobra.Group{ID: "find", Title: "Find what uses space:"},
 		&cobra.Group{ID: "speed", Title: "Speed:"},
 	)
-	for _, c := range []*cobra.Command{newConfigCmd(), newScheduleCmd()} {
+	for _, c := range []*cobra.Command{newConfigCmd(), newScheduleCmd(), newAlertCmd()} {
 		c.GroupID = "clean"
 		root.AddCommand(c)
 	}
@@ -77,10 +78,16 @@ Nothing is deleted without asking unless you pass --yes. Start with:
 	return root
 }
 
+// errQuietExit makes macclean exit with status 1 without printing an error
+// (the command already explained the outcome).
+var errQuietExit = errors.New("exit 1")
+
 // Execute runs the CLI.
 func Execute() {
 	if err := newRootCmd().Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, "error:", err)
+		if !errors.Is(err, errQuietExit) {
+			fmt.Fprintln(os.Stderr, "error:", err)
+		}
 		os.Exit(1)
 	}
 }

@@ -142,6 +142,15 @@ func BirthTime(p string) time.Time {
 	return time.Unix(st.Birthtimespec.Unix())
 }
 
+// DiskTotals returns the available and total space of the home volume.
+func DiskTotals() (free, total int64) {
+	var s syscall.Statfs_t
+	if err := syscall.Statfs(Home, &s); err != nil {
+		return 0, 0
+	}
+	return int64(s.Bavail) * int64(s.Bsize), int64(s.Blocks) * int64(s.Bsize)
+}
+
 // FreeSpace is the space available to the user on the home volume.
 func FreeSpace() int64 {
 	var s syscall.Statfs_t

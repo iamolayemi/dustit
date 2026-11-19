@@ -106,11 +106,120 @@ default set leaves out dependency folders, the Trash and caches of apps you may 
 			return nil
 		},
 	}
-	c.AddCommand(on, off)
+	c.AddCommand(on, off, newScheduleAlertCmd())
+	return c
+}
+
+func newScheduleAlertCmd() *cobra.Command {
+	var below string
+	var every time.Duration
+	var dry bool
+	a := &cobra.Command{
+		Use:   "alert",
+		Short: "Get a notification when free space runs low (never deletes anything)",
+		Long: `Checks free space in the background and shows a notification when it drops below
+the threshold (at most twice a day). It never cleans anything by itself.
+
+  macclean schedule alert on                     below 10%, checked every hour
+  macclean schedule alert on --below 20GB --every 30m
+  macclean schedule alert off`,
+		Args: cobra.NoArgs,
+		RunE: func(*cobra.Command, []string) error {
+			if b, e, ok := schedule.AlertInstalled(); ok {
+				fmt.Printf("Low-disk alert: below %s, checked every %s\n", b, e)
+			} else {
+				fmt.Println("No low-disk alert. Turn it on with: macclean schedule alert on")
+			}
+			return nil
+		},
+	}
+	on := &cobra.Command{
+		Use:   "on",
+		Short: "Turn on (or change) the low-disk alert",
+		Args:  cobra.NoArgs,
+		RunE: func(*cobra.Command, []string) error {
+			if _, err := schedule.Threshold(below, ui.ParseSize); err != nil {
+				return err
+			}
+			bin, err := schedule.Binary()
+			if err != nil {
+				return err
+			}
+			spec := schedule.AlertSpec{Binary: bin, Below: below, Every: every}
+			if dry {
+				p, err := schedule.AlertPlist(spec)
+				if err != nil {
+					return err
+				}
+				fmt.Printf("Would write %s:\n\n%s", fsx.Pretty(schedule.AlertPlistPath()), p)
+				return nil
+			}
+			if err := schedule.InstallAlert(spec); err != nil {
+				return err
+			}
+			fmt.Printf("%s You'll get a notification when free space drops below %s (checked every %s).\n", ui.Green.Render("✓"), below, every)
+			return nil
+		},
+	}
+	on.Flags().StringVar(&below, "below", "10%", "threshold: a percentage (10%) or a size (20GB)")
+	on.Flags().DurationVar(&every, "every", time.Hour, "how often to check")
+	on.Flags().BoolVarP(&dry, "dry-run", "n", false, "print the launchd agent instead of installing it")
+	off := &cobra.Command{
+		Use:   "off",
+		Short: "Turn the low-disk alert off",
+		Args:  cobra.NoArgs,
+		RunE: func(*cobra.Command, []string) error {
+			if err := schedule.RemoveAlert(); err != nil {
+				return err
+			}
+			fmt.Println(ui.Green.Render("✓") + " Low-disk alert removed.")
+			return nil
+		},
+	}
+	a.AddCommand(on, off)
+	return a
+}
+
+func newAlertCmd() *cobra.Command {
+	var below string
+	var notify bool
+	c := &cobra.Command{
+		Use:   "alert",
+		Short: "Check free space against a threshold (exit status 1 when low)",
+		Long: `Prints whether free space is below the threshold and exits with status 1 when it is,
+so it works in scripts. With --notify it also shows a macOS notification (at most twice a day).
+"macclean schedule alert on" runs this in the background.`,
+		Args: cobra.NoArgs,
+		RunE: func(_ *cobra.Command, _ []string) error {
+			low, err := schedule.Threshold(below, ui.ParseSize)
+			if err != nil {
+				return err
+			}
+			free, total := fsx.DiskTotals()
+			pct := float64(free) / float64(total) * 100
+			if !low(free, total) {
+				fmt.Printf("%s %s free (%.0f%%) — above %s.\n", ui.Green.Render("✓"), ui.Human(free), pct, below)
+				return nil
+			}
+			msg := fmt.Sprintf("Only %s free (%.0f%%). Run macclean scan to see what can go.", ui.Human(free), pct)
+			fmt.Println(ui.Red.Render("✗ ") + msg)
+			if notify && schedule.ShouldNotify(12*time.Hour) {
+				sendNotification("Your Mac is running out of space", msg)
+			}
+			return errQuietExit
+		},
+	}
+	c.Flags().StringVar(&below, "below", "10%", "threshold: a percentage (10%) or a size (20GB)")
+	c.Flags().BoolVar(&notify, "notify", false, "show a macOS notification when space is low")
 	return c
 }
 
 func showSchedule() {
+	defer func() {
+		if b, e, ok := schedule.AlertInstalled(); ok {
+			fmt.Printf("Low-disk alert: below %s, checked every %s\n", b, e)
+		}
+	}()
 	st := schedule.Current()
 	if !st.Installed {
 		fmt.Println("No schedule. Turn one on with: macclean schedule on")

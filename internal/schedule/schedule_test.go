@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestPlistIsValidAndComplete(t *testing.T) {
@@ -45,5 +46,29 @@ func TestDescribe(t *testing.T) {
 	}
 	if got := Describe(-1, 22, 0); got != "every day at 22:00" {
 		t.Errorf("got %q", got)
+	}
+}
+
+func TestAlertPlistAndThreshold(t *testing.T) {
+	p, err := AlertPlist(AlertSpec{Binary: "/x/macclean", Below: "10%", Every: time.Hour})
+	if err != nil || !strings.Contains(p, "<integer>3600</integer>") || !strings.Contains(p, "<string>alert</string>") {
+		t.Fatalf("bad alert plist: %v\n%s", err, p)
+	}
+	f := filepath.Join(t.TempDir(), "a.plist")
+	_ = os.WriteFile(f, []byte(p), 0o644)
+	if out, err := exec.Command("plutil", "-lint", f).CombinedOutput(); err != nil {
+		t.Errorf("plutil rejects the alert plist: %s", out)
+	}
+	size := func(s string) (int64, error) { return map[string]int64{"20GB": 20e9}[s], nil }
+	pct, _ := Threshold("10%", size)
+	if !pct(9, 100) || pct(11, 100) {
+		t.Error("percentage threshold wrong")
+	}
+	abs, _ := Threshold("20GB", size)
+	if !abs(19e9, 500e9) || abs(21e9, 500e9) {
+		t.Error("size threshold wrong")
+	}
+	if _, err := Threshold("150%", size); err == nil {
+		t.Error("150% must be rejected")
 	}
 }

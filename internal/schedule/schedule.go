@@ -125,30 +125,14 @@ func Install(s Spec) error {
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(filepath.Dir(PlistPath()), 0o755); err != nil {
-		return err
-	}
 	if err := os.MkdirAll(filepath.Dir(s.LogFile), 0o755); err != nil {
 		return err
 	}
-	_ = exec.Command("launchctl", "bootout", domain(), PlistPath()).Run() // ignore "not loaded"
-	if err := os.WriteFile(PlistPath(), []byte(content), 0o644); err != nil {
-		return err
-	}
-	if out, err := exec.Command("launchctl", "bootstrap", domain(), PlistPath()).CombinedOutput(); err != nil {
-		return fmt.Errorf("launchctl bootstrap: %v %s", err, strings.TrimSpace(string(out)))
-	}
-	return nil
+	return install(PlistPath(), content)
 }
 
 // Remove unloads and deletes the agent.
-func Remove() error {
-	_ = exec.Command("launchctl", "bootout", domain(), PlistPath()).Run()
-	if err := os.Remove(PlistPath()); err != nil && !os.IsNotExist(err) {
-		return err
-	}
-	return nil
-}
+func Remove() error { return uninstall(PlistPath()) }
 
 // Status describes the installed agent.
 type Status struct {
