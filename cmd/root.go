@@ -70,7 +70,7 @@ Nothing is deleted without asking unless you pass --yes. Start with:
 		c.GroupID = "clean"
 		root.AddCommand(c)
 	}
-	for _, c := range []*cobra.Command{newStorageCmd(), newReportCmd(), newTopCmd(), newLargeCmd(), newOldCmd(), newProjectsCmd(),
+	for _, c := range []*cobra.Command{newStorageCmd(), newStartupCmd(), newReportCmd(), newTopCmd(), newLargeCmd(), newOldCmd(), newProjectsCmd(),
 		newDupesCmd(), newAppsCmd(), newLeftoversCmd()} {
 		c.GroupID = "find"
 		root.AddCommand(c)
