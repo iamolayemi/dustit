@@ -50,8 +50,17 @@ $ dustit scan
 `DustIt` lives in the menu bar and looks like macOS's own menus: free space and a capacity
 bar, the biggest cleanable items, anything slowing the Mac down, and "Clean Up…", "Review…",
 "Storage Report" and "Undo" one click away. It's a small SwiftUI app on top of the CLI (`--json`),
-so all the safety rules stay in one place. Build it from source (needs the Xcode
-Command Line Tools):
+so all the safety rules stay in one place.
+
+**Download** `DustIt-<version>-macOS.zip` from [Releases](https://github.com/iamolayemi/dustit/releases),
+unzip it and move **DustIt.app** to Applications. It's universal and carries its own copy of the CLI,
+so it works without installing anything else (an installed `dustit` is used when present).
+
+The app isn't signed by Apple yet, so macOS blocks it the first time: open **System Settings → Privacy &
+Security** and click **Open Anyway** next to DustIt, or run
+`xattr -dr com.apple.quarantine /Applications/DustIt.app`. You only need to do this once.
+
+**Build it from source** (needs the Xcode Command Line Tools):
 
 ```bash
 make menubar && mv "dist/DustIt.app" /Applications/

@@ -9,6 +9,8 @@ enum CLI {
             ProcessInfo.processInfo.environment["DUSTIT_BIN"],
             "/opt/homebrew/bin/dustit", "/usr/local/bin/dustit",
             "\(home)/.local/bin/dustit", "\(home)/go/bin/dustit",
+            // The release app carries its own copy, so it works without installing the CLI.
+            Bundle.main.url(forResource: "dustit", withExtension: nil)?.path,
         ].compactMap { $0 }
         return candidates.first { FileManager.default.isExecutableFile(atPath: $0) }
     }()

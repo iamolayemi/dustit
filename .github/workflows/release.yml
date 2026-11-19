@@ -26,3 +26,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
+      - name: Build and attach the DustIt menu bar app
+        run: |
+          make menubar-zip VERSION="$GITHUB_REF_NAME"
+          gh release upload "$GITHUB_REF_NAME" dist/DustIt-*-macOS.zip --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
