@@ -45,3 +45,25 @@ func TestBelongsToRunningApp(t *testing.T) {
 		}
 	}
 }
+
+func TestOwnerOf(t *testing.T) {
+	names := map[string]string{"com.tinyspeck.slackmacgap": "Slack", "slack": "Slack", "com.microsoft.word": "Microsoft Word",
+		"code": "Visual Studio Code", "com.docker.docker": "Docker", "com.jetbrains.phpstorm": "PhpStorm", "antigravity": "Antigravity"}
+	for folder, want := range map[string]string{
+		"com.tinyspeck.slackmacgap":        "Slack",
+		"UBF8T346G9.com.microsoft.word":    "Microsoft Word",
+		"group.com.tinyspeck.slackmacgap":  "Slack",
+		"com.tinyspeck.slackmacgap.ShipIt": "Slack",
+		"Code":                             "Visual Studio Code",
+		"com.docker.install":               "Docker",
+		"JetBrains":                        "PhpStorm",
+		"Antigravity IDE":                  "Antigravity",
+	} {
+		if got, ok := ownerOf(folder, names); !ok || got != want {
+			t.Errorf("ownerOf(%q) = %q, %v; want %q", folder, got, ok, want)
+		}
+	}
+	if _, ok := ownerOf("com.spotify.client", names); ok {
+		t.Error("an app that isn't installed must not get an owner")
+	}
+}

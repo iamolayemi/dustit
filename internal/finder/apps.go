@@ -16,6 +16,7 @@ import (
 // App is an installed application.
 type App struct {
 	Name, Path, ID string
+	BundleName     string // CFBundleName, e.g. "Code" for Visual Studio Code
 	Size           int64
 	LastUsed       time.Time // zero = never opened, as far as Spotlight knows
 }
@@ -56,7 +57,8 @@ func Apps(withSize bool) []App {
 	apps := make([]App, len(paths))
 	Parallel(len(paths), func(i int) {
 		p := paths[i]
-		a := App{Name: strings.TrimSuffix(filepath.Base(p), ".app"), Path: p, ID: bundleID(p), LastUsed: lastUsed(p)}
+		a := App{Name: strings.TrimSuffix(filepath.Base(p), ".app"), Path: p, ID: bundleID(p), LastUsed: lastUsed(p),
+			BundleName: sh.Line("plutil", "-extract", "CFBundleName", "raw", "-o", "-", filepath.Join(p, "Contents/Info.plist"))}
 		if withSize {
 			a.Size = fsx.DiskUsage(p).Bytes
 		}

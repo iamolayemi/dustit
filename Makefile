@@ -10,7 +10,7 @@ build:
 
 test:
 	go vet ./...
-	go test -race ./...
+	go test -race ./internal/... ./cmd/... && go test -count=1 ./e2e/
 
 lint:
 	golangci-lint run

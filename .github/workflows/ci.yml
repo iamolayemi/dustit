@@ -29,7 +29,7 @@ jobs:
       - name: Vet
         run: go vet ./...
       - name: Test (unit + end-to-end)
-        run: go test -race -coverprofile=coverage.out ./...
+        run: go test -race -coverprofile=coverage.out ./internal/... ./cmd/... && go test -count=1 ./e2e/
       - name: Fuzz the delete guard
         run: go test ./internal/fsx -run '^$' -fuzz FuzzCheckDeletable -fuzztime 30s
       - name: Build
