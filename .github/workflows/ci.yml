@@ -56,7 +56,10 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
-      - run: make menubar
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - run: make menubar-zip
 
   goreleaser-check:
     # Needs a Mac: the release runs dustit to generate man pages and completions.
