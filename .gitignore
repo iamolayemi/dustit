@@ -8,3 +8,4 @@ coverage.*
 /dustit-report*.html
 /macos/DustIt/.build/
 /.claude/
+/macclean
