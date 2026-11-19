@@ -64,7 +64,7 @@ Nothing is deleted without asking unless you pass --yes. Start with:
 	doctorCmd := newDoctorCmd()
 	doctorCmd.GroupID = "speed"
 	root.AddCommand(doctorCmd)
-	for _, c := range []*cobra.Command{newScanCmd(), newCleanCmd(), newListCmd(), newDockerCmd(), newHistoryCmd(), newUndoCmd()} {
+	for _, c := range []*cobra.Command{newScanCmd(), newCleanCmd(), newUICmd(), newListCmd(), newDockerCmd(), newHistoryCmd(), newUndoCmd()} {
 		c.GroupID = "clean"
 		root.AddCommand(c)
 	}
