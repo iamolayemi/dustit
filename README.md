@@ -41,7 +41,9 @@ $ dustit scan
 - **Hard to misuse.** Every removal goes through one guard that refuses anything outside your home
   folder, top-level folders like `~/Documents`, Keychains, Preferences, Mail, `~/.ssh`, and anything
   you exclude in your config. Symlinks are never followed. Personal files go to the Trash.
-- **Single binary, no daemon, no telemetry.**
+- **Learns over time.** It tracks how your disk changes, warns about runaway processes and sudden growth,
+  and tells you when a cache comes back within days of cleaning it.
+- **Single binary, no telemetry.** Background checks are opt-in.
 
 ## Menu bar app
 
@@ -54,6 +56,21 @@ Command Line Tools):
 ```bash
 make menubar && mv "dist/DustIt.app" /Applications/
 ```
+
+## Use it from AI agents, Raycast and Shortcuts
+
+- **AI agents:** `dustit mcp` is a Model Context Protocol server. Agents get `scan`, `storage`, `doctor`,
+  `list_items`, `clean`, `project`, `history` and `undo` tools. Clean-ups are dry runs unless the agent
+  passes `dry_run=false`, review categories need `allow_review=true`, and everything goes through the same
+  guard and undo log as the CLI.
+  ```bash
+  claude mcp add dustit -- dustit mcp
+  ```
+- **Raycast:** the extension in [`integrations/raycast`](integrations/raycast) adds Disk Space, Clean Up
+  Safely, Health Check and What Grew This Week.
+- **Shortcuts and links:** the DustIt menu bar app handles `dustit://clean`, `dustit://report`,
+  `dustit://scan`, `dustit://choose`, `dustit://doctor` and `dustit://explore`. Use them with Shortcuts'
+  "Open URL" action, or call the CLI with "Run Shell Script".
 
 ## Install
 
@@ -98,6 +115,11 @@ dustit doctor        # why is my Mac slow?
 | `scan [-v] [--json]` | Read-only report of every category, plus Docker, Time Machine snapshots and big app data |
 | `clean` | Cleans the **safe** categories, asking before each. `--only a,b` picks categories; `--all` adds **review** ones; `-n` dry run; `-y` no prompts; `--trash` moves instead of deleting; `--notify` shows a notification |
 | `ui` | Full-screen picker: tick categories, look inside them, then clean |
+| `here [path] [--clean]` | Everything the current project uses: dependency and build folders, `.git`, merged branches, worktrees, and its Docker Compose containers, images and volumes |
+| `explore [path]` | Full-screen folder browser sorted by size (like ncdu): drill in, reveal in Finder, move to Trash |
+| `growth [--since 7d]` / `snapshot` | What grew and what shrank since a past snapshot ("Docker +12 GB, ~/Projects/x +4 GB") |
+| `similar [path] [--delete]` | Similar-looking photos (resized copies, edits, bursts), not just exact duplicates; HEIC included |
+| `attachments [--open]` | How much Messages and Mail attachments take, by year (read-only; points to Apple's tools to free it) |
 | `storage [--apps]` | Where your space went in plain groups (Applications, Downloads, Photos, Mail, backups, app data, developer files, macOS…); `--apps` shows which app owns each big data folder |
 | `report [--open]` | One self-contained HTML page: the storage breakdown, a map of your home folder, every category and the health check |
 | `alert [--below 10%]` | Is free space below a threshold? Exit status 1 when it is; `--notify` for a notification |
@@ -106,6 +128,8 @@ dustit doctor        # why is my Mac slow?
 | `history [run-id]` / `undo [run-id]` | What was removed and when; put trashed items back |
 | `doctor [--fix] [--watch] [--json]` | Why the Mac is slow: CPU hogs, memory pressure and swap, disk, throttling, battery health, pending updates, Docker memory, Spotlight, browser memory, startup agents, services. `--fix` offers the safe fixes; `--watch` is a live CPU/memory view |
 | `schedule on\|off` | Clean safe categories daily or weekly with a notification (`--daily`, `--day fri`, `--at 21:30`) |
+| `watch` / `schedule watch on\|off` | Every 15 minutes: processes stuck above 80% CPU for 30+ minutes, free space dropping 10 GB in an hour, folders growing 5 GB in a day, plus a daily timeline snapshot. Notifies you |
+| `mcp` | MCP server so AI agents (Claude Code, Cursor…) can scan and clean through DustIt's safety guard: `claude mcp add dustit -- dustit mcp` |
 | `schedule alert on\|off` | Notify when free space drops below a threshold (`--below 10%` or `20GB`, `--every 1h`); never deletes anything |
 | `config [edit\|check\|init\|path]` | Your settings: excludes, project folders, thresholds, custom categories. `check` finds syntax errors and typos |
 | `docker [--clean] [--volumes]` | What's inside Docker Desktop's disk image; prune it and wait for the file to shrink |

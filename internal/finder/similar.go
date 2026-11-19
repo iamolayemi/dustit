@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"sync"
 	"syscall"
 )
 
@@ -123,24 +122,20 @@ func SimilarImages(roots []string, threshold int, minB int64) []SimilarGroup {
 	for i := range parent {
 		parent[i] = i
 	}
-	var find func(int) int
-	find = func(i int) int {
+	find := func(i int) int {
 		for parent[i] != i {
 			parent[i] = parent[parent[i]]
 			i = parent[i]
 		}
 		return i
 	}
-	var mu sync.Mutex
 	for i := range paths {
 		if !ok[i] {
 			continue
 		}
 		for j := i + 1; j < len(paths); j++ {
 			if ok[j] && bits.OnesCount64(hashes[i]^hashes[j]) <= threshold {
-				mu.Lock()
 				parent[find(i)] = find(j)
-				mu.Unlock()
 			}
 		}
 	}

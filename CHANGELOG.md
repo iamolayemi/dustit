@@ -33,6 +33,16 @@ and this project uses [Semantic Versioning](https://semver.org/).
   and `git-branches` categories; `duplicate_folders` setting.
 - Caches of apps that are open are left alone.
 
+- `here`: everything one project uses (dependencies, build output, git, Docker Compose), with cleanup.
+- `explore`: full-screen folder browser.
+- `growth` and `snapshot`: a disk timeline showing what grew; `storage` and `report` record snapshots too.
+- `watch` and `schedule watch`: alerts for runaway processes, sudden free-space drops and fast-growing folders.
+- Regrowth awareness: scan and clean say when a cache refills within days.
+- `similar`: near-duplicate photos by perceptual hash (JPEG, PNG, GIF, HEIC, TIFF, WebP).
+- `attachments`: read-only report of Messages and Mail attachments by year.
+- `mcp`: Model Context Protocol server for AI agents.
+- Raycast extension, `dustit://` links in the menu bar app, and an app icon.
+
 ### Changed
 - DustIt redesigned to look and behave like a native macOS menu; its actions no longer need
   the Automation permission.
