@@ -64,6 +64,9 @@ Nothing is deleted without asking unless you pass --yes. Start with:
 		root.AddCommand(c)
 	}
 	root.AddCommand(newGenCmd(root))
+	mcpCmd := newMCPCmd()
+	mcpCmd.GroupID = "clean"
+	root.AddCommand(mcpCmd)
 	for _, c := range extraFindCommands() {
 		c.GroupID = "find"
 		root.AddCommand(c)
