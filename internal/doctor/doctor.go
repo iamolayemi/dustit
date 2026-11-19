@@ -39,6 +39,7 @@ type Finding struct {
 	Check    string
 	Severity Severity
 	Summary  string
+	Short    string // a few words for compact views ("6× overloaded"); Summary when empty
 	Details  []string
 	Advice   []string
 	Fixes    []Fix
@@ -169,6 +170,10 @@ func checkLoad(ps []Process, services []brewService) Finding {
 	n := cores()
 	ratio := five / float64(n)
 	f.Summary = fmt.Sprintf("%.1f tasks waiting on %d cores (5-min average)", five, n)
+	f.Short = fmt.Sprintf("%.0f%% busy", ratio*100)
+	if ratio > 1 {
+		f.Short = fmt.Sprintf("%.0f× more work than it can run", ratio)
+	}
 	switch {
 	case ratio > 2:
 		f.Severity = Bad
@@ -229,6 +234,7 @@ func checkMemory(ps []Process, human Human) Finding {
 	_, swapUsed, _ := parseSwap(sysctl("vm.swapusage"))
 
 	f.Summary = fmt.Sprintf("%s RAM, %s swap in use", human(ram), human(swapUsed))
+	f.Short = human(swapUsed) + " swapped to disk"
 	switch {
 	case level >= 4:
 		f.Severity = Bad
@@ -272,6 +278,7 @@ func checkDisk(human Human) Finding {
 	total := int64(s.Blocks) * int64(s.Bsize)
 	pct := float64(free) / float64(total) * 100
 	f.Summary = fmt.Sprintf("%s free (%.0f%%)", human(free), pct)
+	f.Short = fmt.Sprintf("%.0f%% free", pct)
 	switch {
 	case pct < 10:
 		f.Severity = Bad
@@ -299,6 +306,7 @@ func checkThermal() Finding {
 			if n, _ := strconv.Atoi(strings.TrimSpace(v)); n > 0 && n < 100 {
 				f.Severity = Bad
 				f.Summary = fmt.Sprintf("CPU limited to %d%% speed to cool down", n)
+				f.Short = fmt.Sprintf("slowed to %d%% to cool down", n)
 				f.Advice = append(f.Advice, "Let the Mac cool: check vents, don't run it on a soft surface, and reduce what's using CPU.")
 			}
 		}
@@ -318,6 +326,7 @@ func checkUptime() Finding {
 	sec, _ := strconv.ParseInt(secStr, 10, 64)
 	up := time.Since(time.Unix(sec, 0))
 	f.Summary = "running for " + roundDur(up)
+	f.Short = "no restart in " + roundDur(up)
 	if up > 7*24*time.Hour {
 		f.Severity = Info
 		f.Advice = append(f.Advice, "A restart every week or so clears built-up swap and stuck background processes.")
@@ -358,6 +367,7 @@ func checkStartupAgents() Finding {
 	}
 	f.Severity = Warn
 	f.Summary += fmt.Sprintf(", %d point at programs that no longer exist", len(broken))
+	f.Short = fmt.Sprintf("%d left behind by removed apps", len(broken))
 	for _, b := range broken {
 		f.Details = append(f.Details, fsx.Pretty(b))
 		if filepath.Dir(b) == userDir {
@@ -388,6 +398,7 @@ func checkServices(services []brewService) Finding {
 		names = append(names, s.Name)
 	}
 	f.Summary = fmt.Sprintf("%d Homebrew services running: %s", len(services), strings.Join(names, ", "))
+	f.Short = fmt.Sprintf("%d services always on", len(services))
 	if len(services) >= 3 {
 		f.Severity = Info
 		f.Advice = append(f.Advice, "Each one uses memory all the time. Stop the ones you don't need today: brew services stop <name>")

@@ -66,6 +66,7 @@ type jsonFinding struct {
 	Check    string   `json:"check"`
 	Severity string   `json:"severity"`
 	Summary  string   `json:"summary"`
+	Short    string   `json:"short"`
 	Details  []string `json:"details,omitempty"`
 	Advice   []string `json:"advice,omitempty"`
 	Fixes    []string `json:"fixes,omitempty"`
@@ -74,7 +75,11 @@ type jsonFinding struct {
 func doctorJSON(fs []doctor.Finding) []jsonFinding {
 	out := make([]jsonFinding, 0, len(fs))
 	for _, f := range fs {
-		j := jsonFinding{Check: f.Check, Severity: severityNames[f.Severity], Summary: f.Summary, Details: f.Details, Advice: f.Advice}
+		short := f.Short
+		if short == "" {
+			short = f.Summary
+		}
+		j := jsonFinding{Check: f.Check, Severity: severityNames[f.Severity], Summary: f.Summary, Short: short, Details: f.Details, Advice: f.Advice}
 		for _, x := range f.Fixes {
 			j.Fixes = append(j.Fixes, x.Description)
 		}

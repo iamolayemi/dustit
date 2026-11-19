@@ -76,6 +76,7 @@ struct Finding: Decodable, Identifiable {
     let check: String
     let severity: String
     let summary: String
+    var short: String? = nil
     let advice: [String]?
     var id: String { check }
 }

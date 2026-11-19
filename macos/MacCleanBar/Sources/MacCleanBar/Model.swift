@@ -29,6 +29,26 @@ final class Model: ObservableObject {
     var isLow: Bool { total > 0 && Double(free) < Double(total) * 0.10 }
     var busy: Bool { scanning || cleaning }
 
+    /// Sample data for snapshots and previews; makes no CLI calls.
+    init(sample: Bool) {
+        free = 112_410_000_000
+        total = 494_380_000_000
+        scan = Scan(free_bytes: free, safe_bytes: 1_820_000_000, review_bytes: 4_880_000_000, categories: [
+            .init(id: "old-downloads", name: "Downloads older than 90 days", risk: "review", size_bytes: 4_120_000_000),
+            .init(id: "user-caches", name: "App caches", risk: "safe", size_bytes: 1_260_000_000),
+            .init(id: "dot-cache", name: "~/.cache tool caches", risk: "safe", size_bytes: 468_400_000),
+            .init(id: "old-files", name: "Large files untouched for a year", risk: "review", size_bytes: 421_900_000),
+            .init(id: "go-modcache", name: "Go module cache", risk: "review", size_bytes: 256_500_000),
+        ])
+        health = [
+            Finding(check: "Battery", severity: "bad", summary: "check battery condition, 69% of original capacity, 807 charge cycles", short: "69% capacity · 807 cycles", advice: nil),
+            Finding(check: "CPU load", severity: "warn", summary: "13.3 tasks waiting on 8 cores (5-min average)", short: "2× more work than it can run", advice: nil),
+            Finding(check: "Memory", severity: "warn", summary: "17.2 GB RAM, 10.8 GB swap in use — memory pressure is elevated", short: "10.8 GB swapped to disk", advice: nil),
+        ]
+        healthLoaded = true
+        updated = Date().addingTimeInterval(-180)
+    }
+
     init() {
         // Free space is cheap to read; a full scan is not, so it runs on open (if stale) and every 6 hours.
         timers.append(Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in

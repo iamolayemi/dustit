@@ -37,6 +37,7 @@ func checkBattery() Finding {
 			continue
 		}
 		f.Summary = fmt.Sprintf("%s condition, %s of original capacity, %d charge cycles", strings.ToLower(h.Condition), h.MaxCap, h.Cycles)
+		f.Short = fmt.Sprintf("%s capacity · %d cycles", h.MaxCap, h.Cycles)
 		capPct, _ := strconv.Atoi(strings.TrimSuffix(h.MaxCap, "%"))
 		switch {
 		case h.Condition != "" && h.Condition != "Good" && h.Condition != "Normal":
@@ -68,6 +69,7 @@ func checkUpdates() Finding {
 	}
 	f.Severity = Info
 	f.Summary = fmt.Sprintf("%d recommended update(s) waiting", n)
+	f.Short = fmt.Sprintf("%d waiting", n)
 	f.Advice = append(f.Advice, "Updates often include performance and memory fixes: System Settings → General → Software Update.")
 	return f
 }
@@ -84,6 +86,7 @@ func checkDockerMemory(ram int64, human Human) Finding {
 		return f
 	}
 	f.Summary = fmt.Sprintf("Docker Desktop's VM has %s of your %s RAM", human(mem), human(ram))
+	f.Short = human(mem) + " reserved by its VM"
 	if ram > 0 && mem > ram/2 {
 		f.Severity = Warn
 		f.Advice = append(f.Advice,
@@ -112,6 +115,7 @@ func checkSpotlight(ps []Process, status string) Finding {
 		}
 	}
 	f.Summary = fmt.Sprintf("indexing on, using %.0f%% CPU", cpu)
+	f.Short = fmt.Sprintf("indexing · %.0f%% CPU", cpu)
 	switch {
 	case cpu >= 80:
 		f.Severity = Warn
@@ -166,6 +170,7 @@ func checkBrowsers(ps []Process, ram int64, human Human) Finding {
 		f.Details = append(f.Details, fmt.Sprintf("%9s  %s (%d processes)", human(by[b].rss), b, by[b].count))
 	}
 	f.Summary = fmt.Sprintf("using %s of memory", human(total))
+	f.Short = human(total) + " of memory"
 	if ram > 0 && total > ram/4 {
 		f.Severity = Warn
 		f.Summary += fmt.Sprintf(" — %.0f%% of your RAM", float64(total)/float64(ram)*100)

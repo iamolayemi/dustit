@@ -5,6 +5,15 @@ import SwiftUI
 struct MacCleanBarApp: App {
     @StateObject private var model = Model()
 
+    init() {
+        // `MacCleanBar --snapshot <dir>` renders the panel with sample data (light + dark) and exits.
+        let args = CommandLine.arguments
+        if let i = args.firstIndex(of: "--snapshot"), i + 1 < args.count {
+            Snapshot.render(to: args[i + 1])
+            exit(0)
+        }
+    }
+
     var body: some Scene {
         MenuBarExtra {
             PanelView()
