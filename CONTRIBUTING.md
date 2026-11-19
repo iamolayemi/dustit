@@ -9,6 +9,7 @@ git clone https://github.com/iamolayemi/macclean && cd macclean
 make test     # go vet + tests
 make lint     # golangci-lint
 make build    # ./macclean
+make docs     # man pages + completions into generated/
 ```
 
 You need Go 1.24+ and macOS: the code uses Darwin-specific file metadata.
@@ -22,6 +23,10 @@ You need Go 1.24+ and macOS: the code uses Darwin-specific file metadata.
 | `internal/finder` | Read-only scanners: stale dependencies, duplicates, old files, apps, leftovers |
 | `internal/targets` | The cleanup categories (`All()`), scanning and cleaning them |
 | `internal/docker` | Docker Desktop disk image and prune steps |
+| `internal/doctor` | Read-only performance checks and their safe fixes |
+| `internal/history` | The removal log behind `history` and `undo` |
+| `internal/config` | `~/.config/macclean/config.yaml`: loading and `config check` |
+| `internal/schedule` | The launchd agent for scheduled runs |
 | `internal/ui`, `internal/sh` | Styling, prompts, running external commands |
 
 ## Adding a cleanup category

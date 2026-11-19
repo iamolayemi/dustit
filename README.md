@@ -7,9 +7,10 @@
 
 **A careful, open-source disk cleaner and slowdown doctor for macOS, made for developers.**
 
-macclean finds what is eating your disk (caches, logs, `node_modules` in projects you
-abandoned months ago, old IDE versions, duplicate files, leftovers from deleted apps,
-Docker's disk image) and removes it only when you say so.
+macclean finds what is eating your disk: caches, `node_modules` in projects you abandoned months
+ago, old Node/Python/Rust/Java versions, old IDE versions, duplicate files, leftovers from deleted
+apps and Docker's disk image. It removes them only when you say so, keeps a history, and can
+undo anything it moved to the Trash. `macclean doctor` tells you why your Mac is slow.
 
 ```text
 $ macclean scan
@@ -20,43 +21,26 @@ $ macclean scan
 │ npm-cache              │  11.1 GB │     3 │ safe   │ npm cache                         │
 │ stale-deps             │  16.8 GB │   101 │ safe   │ Dependencies in idle projects     │
 │ jetbrains-old          │  12.1 GB │    11 │ review │ Old JetBrains IDE versions        │
-│ go-modcache            │  11.1 GB │       │ review │ Go module cache                   │
+│ old-versions           │   2.4 GB │     6 │ review │ Old language & SDK versions       │
 │ …                      │          │       │        │                                   │
 ╰────────────────────────┴──────────┴───────┴────────┴───────────────────────────────────╯
 
   Safe to reclaim: 56.3 GB    Needs review: 33.5 GB
 ```
 
-### Why is my Mac slow?
-
-```text
-$ macclean doctor
-✗ CPU load: 22.8 tasks waiting on 8 cores (5-min average) — 3× more work than the CPU can run
-      177%  WhatsApp                     open for 10h 56m
-       76%  mysqld                       open for 2d 17h
-    → mysqld is using 76% CPU and has been running 2d 17h. A service this busy is often stuck
-      on a long query or leftover job. Restart it: brew services restart mysql@9.7
-
-! Memory: 17.2 GB RAM, 13.7 GB swap in use — memory pressure is elevated
-✓ Temperature: no throttling
-```
-
-macclean doesn't "clean RAM" or kill apps behind your back. macOS manages memory itself, and
-purging it only makes apps slower while they reload. Instead, `doctor` tells you which process is
-actually responsible and what to do about it.
-
 ## Why macclean
 
-- **Read-only until you ask.** `scan` never touches anything. `clean` asks before each
-  category, and `--dry-run` shows exactly what would go.
-- **Knows developer machines.** It understands `node_modules`, `vendor`, `Pods`, `target`,
-  `.venv`, `.next`, Xcode DerivedData, Go, npm, pnpm, Yarn, Bun, Cargo, Gradle, Composer,
-  Homebrew, JetBrains, Electron apps, sst/Pulumi/Terraform plugins and Docker Desktop.
-- **Hard to misuse.** Every removal goes through one guard that refuses anything outside
-  your home folder, top-level folders like `~/Documents`, and areas such as Keychains,
-  Preferences, Mail and `~/.ssh`. Symlinks are never followed.
-- **Personal files go to the Trash.** Old files, duplicates and downloads are moved to the
-  Trash, never deleted outright.
+- **Read-only until you ask.** `scan` never touches anything; `clean` asks before each category;
+  `--dry-run` shows exactly what would go.
+- **Undo.** Every removal is logged. `macclean undo` puts back what a run moved to the Trash.
+- **Knows developer machines.** `node_modules`, `vendor`, `Pods`, `target`, `.venv`, `.next`, Xcode,
+  nvm/pyenv/rustup/asdf/mise/SDKMAN…, npm, pnpm, Yarn, Bun, Cargo, Gradle, Composer, Homebrew,
+  JetBrains, Electron apps, Docker Desktop and local AI models.
+- **Keeps what you use.** Old-version cleanup keeps your default version, the newest, and every
+  version a project pins in `.nvmrc`, `.python-version`, `.tool-versions`, `composer.json`, …
+- **Hard to misuse.** Every removal goes through one guard that refuses anything outside your home
+  folder, top-level folders like `~/Documents`, Keychains, Preferences, Mail, `~/.ssh`, and anything
+  you exclude in your config. Symlinks are never followed. Personal files go to the Trash.
 - **Single binary, no daemon, no telemetry.**
 
 ## Install
@@ -83,40 +67,38 @@ sudo mv macclean /usr/local/bin/
 go install github.com/iamolayemi/macclean@latest
 ```
 
-**From source:**
-
-```bash
-git clone https://github.com/iamolayemi/macclean && cd macclean && make install
-```
-
 ## Usage
 
-Start with a scan, then clean what you're happy to lose:
-
 ```bash
-macclean scan          # what could be freed (add -v for the biggest items)
+macclean scan          # what could be freed (-v for the biggest items, --json for scripts)
+macclean ui            # pick what to clean in a full-screen list
 macclean clean -n      # dry run of the safe categories
 macclean clean         # clean safe categories, asking before each
-macclean clean --only stale-deps,old-files
+macclean clean --only stale-deps,old-versions
+macclean undo          # put back what the last run moved to the Trash
+macclean doctor        # why is my Mac slow?
 ```
 
 ### Commands
 
 | Command | What it does |
 |---|---|
-| `scan [-v]` | Read-only report of every category, plus Docker, Time Machine snapshots and big app data |
-| `clean` | Cleans the **safe** categories, asking before each. `--only a,b` picks categories; `--all` adds **review** ones; `-n` is a dry run; `-y` skips prompts; `--trash` moves instead of deleting |
-| `list` | Every category and what it removes |
-| `docker [--clean] [--volumes]` | What's inside Docker Desktop's disk image. `--clean` prunes containers, images, build cache and networks, then waits for the image file to shrink. Volumes are only offered with `--volumes` |
-| `doctor [--fix]` | Diagnoses why the Mac feels slow: CPU load and the processes behind it, memory pressure and swap, disk space, thermal throttling, uptime, broken startup agents, Homebrew services and snapshots, with a specific fix for each. `--fix` offers the safe ones (restart a stuck Homebrew service, remove broken startup agents), asking first |
-| `projects [path] [--days 30] [--clean]` | Dependency/build folders in projects untouched for N days |
+| `scan [-v] [--json]` | Read-only report of every category, plus Docker, Time Machine snapshots and big app data |
+| `clean` | Cleans the **safe** categories, asking before each. `--only a,b` picks categories; `--all` adds **review** ones; `-n` dry run; `-y` no prompts; `--trash` moves instead of deleting; `--notify` shows a notification |
+| `ui` | Full-screen picker: tick categories, look inside them, then clean |
+| `history [run-id]` / `undo [run-id]` | What was removed and when; put trashed items back |
+| `doctor [--fix] [--watch] [--json]` | Why the Mac is slow: CPU hogs, memory pressure and swap, disk, throttling, battery health, pending updates, Docker memory, startup agents, services. `--fix` offers the safe fixes; `--watch` is a live CPU/memory view |
+| `schedule on\|off` | Clean safe categories daily or weekly with a notification (`--daily`, `--day fri`, `--at 21:30`) |
+| `config [edit\|check\|init\|path]` | Your settings: excludes, project folders, thresholds, custom categories. `check` finds syntax errors and typos |
+| `docker [--clean] [--volumes]` | What's inside Docker Desktop's disk image; prune it and wait for the file to shrink |
+| `projects [path] [--days 30] [--clean]` | Dependency/build folders in idle projects |
 | `dupes [path] [--min 1MB] [--delete]` | Duplicate files by content; you pick which copy to keep |
-| `old [path] [--days 180] [--delete]` | Old items in a folder (default `~/Downloads`) |
-| `large [path] [--min 500MB] [--delete]` | Largest files |
-| `top [path]` | Which folders use the most space |
-| `apps [--days 180] [--uninstall]` | Apps by last use and size; uninstall moves the app and its data to the Trash |
-| `leftovers [--clean]` | Data folders of apps you've already deleted |
-| `completion zsh\|bash\|fish` | Shell completion, including category names for `--only` |
+| `old [path] [--days 180]`, `large [path] [--min 500MB]`, `top [path]` | Old items, big files, biggest folders |
+| `apps [--uninstall]`, `leftovers [--clean]` | Apps by last use; data from apps you've deleted |
+| `list [--json]` | Every category and what it removes |
+
+Man pages ship with releases (`man macclean-doctor`), and shell completion (`macclean completion zsh`)
+suggests category names for `--only`.
 
 ### Categories
 
@@ -124,11 +106,9 @@ macclean clean --only stale-deps,old-files
 
 | ID | Removes |
 |---|---|
-| `user-caches` | `~/Library/Caches` |
-| `user-logs` | `~/Library/Logs`, crash reports |
-| `trash` | The Trash |
+| `user-caches`, `user-logs`, `trash` | `~/Library/Caches`, logs and crash reports, the Trash |
 | `electron-caches` | Cache folders of VS Code, Slack, Postman, Figma, Chrome… (quit them first) |
-| `dot-cache` | `~/.cache` (AI model caches are kept) |
+| `dot-cache` | `~/.cache` (AI model caches and corepack's pnpm/yarn are kept) |
 | `stale-deps` | `node_modules`, `vendor`, `Pods`, `target`, `.venv`, `.next`… in projects idle for 30+ days |
 | `xcode-derived`, `xcode-device-support`, `simulator-caches`, `simulators-unavailable` | Xcode build data and simulators |
 | `npm-cache`, `yarn-cache`, `pnpm-store`, `bun-cache`, `gradle-cache`, `composer-cache`, `cargo-cache`, `homebrew` | Package manager caches |
@@ -138,37 +118,98 @@ macclean clean --only stale-deps,old-files
 
 | ID | Removes |
 |---|---|
-| `old-files` | Files ≥ 100 MB not changed in a year (to Trash) |
-| `duplicates` | Extra copies of identical files ≥ 5 MB; the oldest is kept (to Trash) |
-| `old-downloads` | Downloads older than 90 days (to Trash) |
-| `jetbrains-old` | JetBrains IDE versions older than your newest one |
-| `iac-plugins` | sst / Pulumi / Terraform provider plugins |
-| `go-modcache` | Go module cache |
-| `docker` | `docker system prune` |
-| `xcode-archives`, `simulator-devices`, `ios-backups` | Xcode archives, simulator devices, device backups |
+| `old-versions` | Old Node (nvm, fnm, Volta), Python (pyenv), Ruby (rbenv, rvm), Rust (rustup), Go, Terraform, Java (JDKs, SDKMAN), Flutter (fvm), Gradle, Android SDK, asdf/mise tools, unused Homebrew `python@`/`php@`/… and extra Xcode copies |
+| `old-files`, `duplicates`, `old-downloads` | Big files untouched for a year, extra copies of identical files, old downloads (all to Trash) |
+| `jetbrains-old`, `pnpm-old-stores`, `iac-plugins`, `go-modcache` | Old IDE versions, old pnpm stores, sst/Pulumi/Terraform plugins, Go module cache |
+| `ai-models`, `macos-installers` | Ollama / LM Studio / Hugging Face models, "Install macOS" apps |
+| `docker`, `xcode-archives`, `simulator-devices`, `ios-backups` | Docker prune, Xcode archives, simulator devices, device backups |
 
-### How "idle project" and "old file" are decided
+### How macclean decides
 
-- A dependency folder counts only when its project file sits next to it: `node_modules` next
-  to `package.json`, `vendor` next to `composer.json`, `target` next to `Cargo.toml`, and so on.
-  A Go `vendor/` folder is never touched.
-- A project is idle when neither git nor any source file has changed for `--days` days.
-- Age is the later of modified and changed time. Access time is ignored, because backups and
-  Spotlight read files constantly.
-- Personal-file scans skip app-managed folders (the Music and Photos libraries, caches and app
-  bundles), so cleaning can't break an app's library.
+- **Project folders** are `~/Projects`, `~/Developer`, `~/code`, `~/src`, `~/dev`, `~/workspace`,
+  `~/Sites`, `~/Documents` and `~/Desktop`, plus any `project_roots` in your config.
+- **A dependency folder** counts only when its project file sits next to it: `node_modules` next to
+  `package.json`, `vendor` next to `composer.json`, `target` next to `Cargo.toml`, … (Go's `vendor/`
+  is never touched). A project is **idle** when neither git nor any source file changed for 30 days.
+- **Old versions:** for each tool, macclean keeps your default/current version, the newest one, and
+  any version pinned by a project (`.nvmrc`, `.node-version`, `.python-version`, `.ruby-version`,
+  `.tool-versions`, `mise.toml`, `rust-toolchain`, `.go-version`, `.terraform-version`, `.java-version`,
+  `.sdkmanrc`, `.fvmrc`, `gradle-wrapper.properties`, `composer.json`'s `php`, Volta's `package.json`).
+  Homebrew versioned formulae are only suggested when a newer one is installed, nothing depends on
+  them, and they aren't running as a service.
+- **Age** is the later of modified and changed time. Access time is ignored: backups and Spotlight
+  read files constantly.
+- **Personal-file scans** skip app-managed folders (Music and Photos libraries, caches, app bundles).
+
+## Configuration
+
+`macclean config edit` opens `~/.config/macclean/config.yaml` (created from a commented example) and
+checks it when you save. `macclean config check` reports syntax errors, misspelled keys and bad
+values with line numbers.
+
+```yaml
+exclude:                      # never removed, by any command
+  - ~/Projects/client-x/node_modules
+  - ~/Downloads/*.dmg
+project_roots:                # searched in addition to the defaults
+  - ~/work
+stale_days: 30
+old_file_days: 365
+old_file_min: 100MB
+duplicate_min: 5MB
+download_days: 90
+disabled: [electron-caches]   # categories to turn off
+categories:                   # your own: the contents of each path are removed
+  - id: unity-cache
+    name: Unity cache
+    paths: [~/Library/Unity/cache]
+    risk: safe                # safe | review
+```
+
+## Why is my Mac slow?
+
+```text
+$ macclean doctor
+✗ CPU load: 22.8 tasks waiting on 8 cores (5-min average) — 3× more work than the CPU can run
+      177%  WhatsApp                     open for 10h 56m
+       76%  mysqld                       open for 2d 17h
+    → mysqld is using 76% CPU and has been running 2d 17h. A service this busy is often stuck
+      on a long query or leftover job. Restart it: brew services restart mysql@9.7
+
+✗ Battery: check battery condition, 69% of original capacity, 807 charge cycles
+! Memory: 17.2 GB RAM, 13.7 GB swap in use — memory pressure is elevated
+✓ Temperature: no throttling
+```
+
+macclean doesn't "clean RAM" or kill apps behind your back. macOS manages memory itself, and purging
+it only makes apps slower while they reload. `doctor` tells you which process is actually responsible
+and what to do about it.
+
+## History and undo
+
+Every removal is recorded in `~/Library/Application Support/macclean/history.jsonl`.
+
+```bash
+macclean history               # recent runs: what, how much, trashed or deleted
+macclean history <run-id>      # every item of one run
+macclean undo                  # put back what the last run moved to the Trash
+```
+
+Caches and dependency folders are deleted permanently (their tools rebuild them); personal files go
+to the Trash and can be undone until you empty it.
 
 ## Full Disk Access
 
 macOS hides some folders (Trash, Mail, iOS backups) from terminal apps. To include them, add your
-terminal under **System Settings → Privacy & Security → Full Disk Access**. macclean works without
-it and tells you when something was skipped.
+terminal under **System Settings → Privacy & Security → Full Disk Access**. macclean works without it
+and tells you when something was skipped.
 
 ## Contributing
 
-Bug reports, new cleanup categories and fixes are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
-If you find a way macclean could delete something it shouldn't, please report it privately as
-described in [SECURITY.md](SECURITY.md).
+Bug reports, new cleanup categories and fixes are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
+`make docs` builds the man pages and completions; `make demo` records a demo GIF with
+[vhs](https://github.com/charmbracelet/vhs). If you find a way macclean could delete something it
+shouldn't, please report it privately as described in [SECURITY.md](SECURITY.md).
 
 ## License
 

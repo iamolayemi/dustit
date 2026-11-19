@@ -61,6 +61,7 @@ Nothing is deleted without asking unless you pass --yes. Start with:
 		c.GroupID = "clean"
 		root.AddCommand(c)
 	}
+	root.AddCommand(newGenCmd(root))
 	doctorCmd := newDoctorCmd()
 	doctorCmd.GroupID = "speed"
 	root.AddCommand(doctorCmd)

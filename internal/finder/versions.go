@@ -441,13 +441,6 @@ func (t versionTool) old(pins map[string][]string) []Item {
 
 // ---------- Homebrew versioned formulae ----------
 
-type brewFormula struct {
-	Name     string `json:"name"`
-	Versions struct {
-		Stable string `json:"stable"`
-	} `json:"versions"`
-}
-
 var atVersion = regexp.MustCompile(`^(.+)@([\d.]+)$`)
 
 // OldBrewVersions finds versioned formulae (python@3.11, php@8.1…) when a newer version of

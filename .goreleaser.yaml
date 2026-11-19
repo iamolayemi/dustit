@@ -5,6 +5,7 @@ project_name: macclean
 before:
   hooks:
     - go mod tidy
+    - go run . gen generated
 
 builds:
   - env: [CGO_ENABLED=0]
@@ -23,7 +24,11 @@ universal_binaries:
 archives:
   - formats: [tar.gz]
     name_template: "{{ .ProjectName }}_{{ title .Os }}_{{ .Arch }}"
-    files: [LICENSE, README.md]
+    files:
+      - LICENSE
+      - README.md
+      - generated/man/*.1
+      - generated/completions/*
 
 checksum:
   name_template: checksums.txt
@@ -51,6 +56,12 @@ homebrew_casks:
       name: goreleaserbot
       email: bot@goreleaser.com
     commit_msg_template: "macclean {{ .Tag }}"
+    manpages:
+      - generated/man/macclean.1
+    completions:
+      bash: generated/completions/macclean.bash
+      zsh: generated/completions/_macclean
+      fish: generated/completions/macclean.fish
     hooks:
       post:
         # Release binaries aren't notarized; clear the quarantine flag so macOS lets them run.
