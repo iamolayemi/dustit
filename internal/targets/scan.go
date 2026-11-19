@@ -92,6 +92,9 @@ func Scan(t *Target) Result {
 	}
 	kept := items[:0]
 	for _, it := range items {
+		if fsx.Excluded(it.Path) {
+			continue
+		}
 		if it.Age.IsZero() {
 			it.Age = fsx.ModTime(it.Path)
 		}

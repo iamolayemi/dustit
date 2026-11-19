@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/dustin/go-humanize"
+
+	"github.com/iamolayemi/macclean/internal/config"
 	"github.com/iamolayemi/macclean/internal/finder"
 	"github.com/iamolayemi/macclean/internal/fsx"
 )
@@ -44,8 +47,56 @@ type Target struct {
 
 var h = fsx.H
 
-// All returns every category, safe ones first.
+// All returns every enabled category (built-in, then the user's own), safe ones first.
 func All() []*Target {
+	cfg := config.Current
+	var out []*Target
+	for _, t := range append(builtin(cfg), custom(cfg)...) {
+		if !cfg.IsDisabled(t.ID) {
+			out = append(out, t)
+		}
+	}
+	return out
+}
+
+// BuiltinIDs lists the ids of the built-in categories.
+func BuiltinIDs() []string {
+	var ids []string
+	for _, t := range builtin(config.Defaults()) {
+		ids = append(ids, t.ID)
+	}
+	return ids
+}
+
+func size(s string, def int64) int64 {
+	if n, err := humanize.ParseBytes(s); err == nil {
+		return int64(n)
+	}
+	return def
+}
+
+func custom(cfg config.Config) []*Target {
+	var out []*Target
+	for _, c := range cfg.Categories {
+		t := &Target{ID: c.ID, Name: c.Name, Desc: c.Desc, Risk: Review, ToTrash: c.Trash, MinAgeDays: c.MinAgeDays}
+		if c.Risk == "safe" {
+			t.Risk = Safe
+		}
+		if t.Name == "" {
+			t.Name = c.ID
+		}
+		if t.Desc == "" {
+			t.Desc = "Custom category from your config"
+		}
+		for _, p := range c.Paths {
+			t.Dirs = append(t.Dirs, fsx.Expand(p))
+		}
+		out = append(out, t)
+	}
+	return out
+}
+
+func builtin(cfg config.Config) []*Target {
 	return []*Target{
 		{ID: "user-caches", Name: "App caches", Risk: Safe,
 			Desc:    "~/Library/Caches — apps rebuild these automatically",
@@ -65,8 +116,8 @@ func All() []*Target {
 			Dirs:    []string{h(".cache")},
 			Exclude: []string{"huggingface", "torch", "whisper", "ollama", "lm-studio", "gitstatus", "node"}}, // node/corepack holds the pnpm/yarn binaries corepack runs
 		{ID: "stale-deps", Name: "Dependencies in idle projects", Risk: Safe,
-			Desc: "node_modules, vendor, Pods, target, .venv, .next… in projects untouched for 30+ days (reinstall with npm/composer/pod install)",
-			Find: func() []finder.Item { return finder.StaleDeps(finder.ProjectRoots(), 30) }},
+			Desc: fmt.Sprintf("node_modules, vendor, Pods, target, .venv, .next… in projects untouched for %d+ days (reinstall with npm/composer/pod install)", cfg.StaleDays),
+			Find: func() []finder.Item { return finder.StaleDeps(finder.ProjectRoots(), cfg.StaleDays) }},
 		{ID: "xcode-derived", Name: "Xcode DerivedData", Risk: Safe,
 			Desc: "Xcode build intermediates; rebuilt on next build",
 			Dirs: []string{h("Library/Developer/Xcode/DerivedData")}},
@@ -115,15 +166,19 @@ func All() []*Target {
 			Dirs: []string{h("Library/Containers/com.apple.mail/Data/Library/Mail Downloads")}},
 
 		{ID: "old-files", Name: "Large files untouched for a year", Risk: Review, ToTrash: true,
-			Desc: "Files ≥ 100 MB in Desktop, Documents, Movies, Music, Pictures and project folders not changed in 365 days — moved to Trash",
-			Find: func() []finder.Item { return finder.OldFiles(finder.UserFileRoots(false), 365, 100e6) }},
+			Desc: fmt.Sprintf("Files ≥ %s in Desktop, Documents, Movies, Music, Pictures and project folders not changed in %d days — moved to Trash", cfg.OldFileMin, cfg.OldFileDays),
+			Find: func() []finder.Item {
+				return finder.OldFiles(finder.UserFileRoots(false), cfg.OldFileDays, size(cfg.OldFileMin, 100e6))
+			}},
 		{ID: "duplicates", Name: "Duplicate files", Risk: Review, ToTrash: true,
-			Desc: "Extra copies of identical files ≥ 5 MB in your personal and project folders; the oldest copy is kept — moved to Trash",
-			Find: func() []finder.Item { return finder.DupeExtras(finder.Dupes(finder.UserFileRoots(true), 5e6)) }},
-		{ID: "old-downloads", Name: "Downloads older than 90 days", Risk: Review, ToTrash: true,
+			Desc: fmt.Sprintf("Extra copies of identical files ≥ %s in your personal and project folders; the first copy is kept — moved to Trash", cfg.DuplicateMin),
+			Find: func() []finder.Item {
+				return finder.DupeExtras(finder.Dupes(finder.UserFileRoots(true), size(cfg.DuplicateMin, 5e6)))
+			}},
+		{ID: "old-downloads", Name: fmt.Sprintf("Downloads older than %d days", cfg.DownloadDays), Risk: Review, ToTrash: true,
 			Desc:       "Moved to Trash, not deleted — check before emptying",
 			Dirs:       []string{h("Downloads")},
-			MinAgeDays: 90},
+			MinAgeDays: cfg.DownloadDays},
 		{ID: "old-versions", Name: "Old language & SDK versions", Risk: Review,
 			Desc: "Old Node (nvm/fnm/Volta), Python, Ruby, Rust, Go, Java, Terraform, Flutter, Gradle, Android SDK, asdf/mise tools, " +
 				"unused Homebrew python@/php@/… and extra Xcode copies. Keeps your default, the newest, and any version a project pins",

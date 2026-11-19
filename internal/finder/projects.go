@@ -124,6 +124,7 @@ func StaleDeps(roots []string, days int) []Item {
 		}
 		items = append(items, Item{Path: p, Age: act, Note: "project idle " + humanize.RelTime(act, time.Now(), "", "")})
 	}
+	items = withoutExcluded(items)
 	Measure(items)
 	SortBySize(items)
 	return items

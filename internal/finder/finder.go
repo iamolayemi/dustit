@@ -33,6 +33,17 @@ func Total(items []Item) int64 {
 	return t
 }
 
+// withoutExcluded drops items the user excluded in their config (or that contain an excluded path).
+func withoutExcluded(items []Item) []Item {
+	out := items[:0]
+	for _, it := range items {
+		if !fsx.Excluded(it.Path) {
+			out = append(out, it)
+		}
+	}
+	return out
+}
+
 // SortBySize sorts largest first.
 func SortBySize(items []Item) {
 	sort.Slice(items, func(i, j int) bool { return items[i].Size > items[j].Size })
@@ -105,6 +116,7 @@ func OldEntries(dir string, days int, minB int64) ([]Item, error) {
 			items = append(items, Item{Path: p, Age: age})
 		}
 	}
+	items = withoutExcluded(items)
 	Measure(items)
 	out := items[:0]
 	for _, it := range items {
@@ -141,6 +153,7 @@ func LargeFiles(root string, minB int64) []Item {
 		}
 		return nil
 	})
+	found = withoutExcluded(found)
 	SortBySize(found)
 	return found
 }
@@ -179,11 +192,20 @@ func DedupeRoots(paths []string) []string {
 	return out
 }
 
-// ProjectRoots are the usual places code lives.
+// DefaultProjectFolders are searched for projects unless they don't exist.
+var DefaultProjectFolders = []string{"Projects", "Developer", "code", "src", "dev", "workspace", "Sites", "Documents", "Desktop"}
+
+// ExtraProjectRoots come from the config's project_roots.
+var ExtraProjectRoots []string
+
+// ProjectRoots are the usual places code lives, plus the user's configured folders.
 func ProjectRoots() []string {
 	var c []string
-	for _, n := range []string{"Projects", "Developer", "code", "src", "dev", "workspace", "Sites", "Documents", "Desktop"} {
+	for _, n := range DefaultProjectFolders {
 		c = append(c, fsx.H(n))
+	}
+	for _, r := range ExtraProjectRoots {
+		c = append(c, fsx.Expand(r))
 	}
 	return DedupeRoots(c)
 }
@@ -238,7 +260,7 @@ func walkUserFiles(roots []string, fn func(p string, st *syscall.Stat_t)) {
 				}
 				return nil
 			}
-			if !d.Type().IsRegular() || SkipNames[d.Name()] {
+			if !d.Type().IsRegular() || SkipNames[d.Name()] || fsx.Excluded(p) {
 				return nil
 			}
 			var st syscall.Stat_t

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
@@ -34,14 +35,19 @@ Nothing is deleted without asking unless you pass --yes. Start with:
 		Version:       fmt.Sprintf("%s (commit %s, built %s)", version, commit, date),
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			history.Begin(cmd.CommandPath())
+			// A broken config must not lock you out of fixing it.
+			if err := applyConfig(); err != nil && !strings.HasPrefix(cmd.CommandPath(), "macclean config") {
+				return fmt.Errorf("%w\nFix it with: macclean config edit", err)
+			}
 			if noColor || os.Getenv("NO_COLOR") != "" {
 				lipgloss.SetColorProfile(termenv.Ascii)
 			}
 			if runtime.GOOS != "darwin" {
 				fmt.Fprintln(os.Stderr, "warning: macclean is built for macOS; most paths won't exist here")
 			}
+			return nil
 		},
 	}
 	root.PersistentFlags().BoolVar(&noColor, "no-color", false, "disable colours")
@@ -51,6 +57,9 @@ Nothing is deleted without asking unless you pass --yes. Start with:
 		&cobra.Group{ID: "find", Title: "Find what uses space:"},
 		&cobra.Group{ID: "speed", Title: "Speed:"},
 	)
+	configCmd := newConfigCmd()
+	configCmd.GroupID = "clean"
+	root.AddCommand(configCmd)
 	doctorCmd := newDoctorCmd()
 	doctorCmd.GroupID = "speed"
 	root.AddCommand(doctorCmd)

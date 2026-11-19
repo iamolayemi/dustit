@@ -166,8 +166,39 @@ var forbiddenRel = []string{
 	"Library/Accounts", "Library/Cookies", ".ssh", ".gnupg",
 }
 
+// excludes are user paths (from the config) that must never be removed.
+var excludes []string
+
+// SetExcludes installs the user's never-remove list ("~" and globs allowed).
+func SetExcludes(paths []string) {
+	excludes = nil
+	for _, e := range paths {
+		if e = strings.TrimSpace(e); e != "" {
+			excludes = append(excludes, filepath.Clean(Expand(e)))
+		}
+	}
+}
+
+// Excluded reports whether removing p would remove an excluded path: p is excluded,
+// inside an excluded folder, or contains one.
+func Excluded(p string) bool {
+	c := filepath.Clean(p)
+	for _, e := range excludes {
+		if ok, _ := filepath.Match(e, c); ok {
+			return true
+		}
+		if c == e || strings.HasPrefix(c, e+"/") || strings.HasPrefix(e, c+"/") {
+			return true
+		}
+	}
+	return false
+}
+
 // CheckDeletable is the last line of defence before anything is removed.
 func CheckDeletable(p string) error {
+	if Excluded(p) {
+		return fmt.Errorf("refusing %s: excluded in your config", p)
+	}
 	if !filepath.IsAbs(p) {
 		return fmt.Errorf("refusing relative path %q", p)
 	}
@@ -229,6 +260,9 @@ func moveToTrash(p string) (string, error) {
 
 // TrashApp moves an .app bundle from an Applications folder to the Trash.
 func TrashApp(p string) error {
+	if Excluded(p) {
+		return fmt.Errorf("refusing %s: excluded in your config", p)
+	}
 	ok := false
 	for _, base := range []string{"/Applications", H("Applications")} {
 		if d := filepath.Dir(p); d == base || filepath.Dir(d) == base {

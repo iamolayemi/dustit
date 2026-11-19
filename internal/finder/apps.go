@@ -154,6 +154,7 @@ func Leftovers() ([]Item, error) {
 			found = append(found, Item{Path: p, Age: fsx.ModTime(p)})
 		}
 	}
+	found = withoutExcluded(found)
 	Measure(found)
 	SortBySize(found)
 	return found, nil

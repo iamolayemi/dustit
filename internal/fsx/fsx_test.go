@@ -59,3 +59,23 @@ func TestExpandPretty(t *testing.T) {
 		t.Errorf("Pretty = %q", got)
 	}
 }
+
+func TestExcludes(t *testing.T) {
+	SetExcludes([]string{"~/Projects/keep", "~/Downloads/*.dmg"})
+	defer SetExcludes(nil)
+	for p, want := range map[string]bool{
+		H("Projects/keep"):              true,
+		H("Projects/keep/node_modules"): true,  // inside
+		H("Projects"):                   true,  // contains an excluded path
+		H("Projects/other"):             false, // sibling
+		H("Downloads/app.dmg"):          true,  // glob
+		H("Downloads/app.zip"):          false,
+	} {
+		if got := Excluded(p); got != want {
+			t.Errorf("Excluded(%s) = %v, want %v", Pretty(p), got, want)
+		}
+	}
+	if err := CheckDeletable(H("Projects/keep/node_modules")); err == nil {
+		t.Error("excluded paths must be refused")
+	}
+}
