@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/iamolayemi/macclean/internal/finder"
@@ -55,11 +56,15 @@ func Scan(t *Target) Result {
 		return r
 	}
 	if len(t.PathCmd) > 0 {
-		if p := sh.Line(t.PathCmd...); filepath.IsAbs(p) {
-			u := fsx.DiskUsage(p)
-			r.Bytes += u.Bytes
-			r.Denied += u.Denied
+		p := sh.Line(t.PathCmd...)
+		if !filepath.IsAbs(p) {
+			// Report the failure instead of a misleading "0 B".
+			r.Unavailable = "`" + strings.Join(t.PathCmd, " ") + "` failed"
+			return r
 		}
+		u := fsx.DiskUsage(p)
+		r.Bytes += u.Bytes
+		r.Denied += u.Denied
 	}
 
 	var cutoff time.Time

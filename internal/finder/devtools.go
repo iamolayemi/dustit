@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/iamolayemi/macclean/internal/fsx"
+	"github.com/iamolayemi/macclean/internal/sh"
 )
 
 // ElectronCaches finds Chromium/Electron cache folders inside ~/Library/Application Support.
@@ -72,6 +73,26 @@ func JetBrainsOld() []Item {
 		l := latest[v.product]
 		if l > 0 && (v.n < l || (v.suffix != "" && v.n <= l)) {
 			out = append(out, Item{Path: filepath.Join(base, v.name)})
+		}
+	}
+	return out
+}
+
+// OldPnpmStores returns pnpm store folders (store/vN) other than the one the installed pnpm uses.
+func OldPnpmStores() []Item {
+	current := sh.Line("pnpm", "store", "path")
+	if !filepath.IsAbs(current) {
+		return nil
+	}
+	entries, err := os.ReadDir(filepath.Dir(current))
+	if err != nil {
+		return nil
+	}
+	var out []Item
+	for _, e := range entries {
+		p := filepath.Join(filepath.Dir(current), e.Name())
+		if e.IsDir() && p != current && len(e.Name()) > 1 && e.Name()[0] == 'v' {
+			out = append(out, Item{Path: p, Note: "current store is " + filepath.Base(current)})
 		}
 	}
 	return out
