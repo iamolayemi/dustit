@@ -49,8 +49,13 @@ type Human func(int64) string
 
 // Run executes every check concurrently and returns findings, worst first.
 func Run(human Human) []Finding {
-	ps := processes()
-	services := brewServices()
+	var ps []Process
+	var services []brewService
+	var wg0 sync.WaitGroup
+	wg0.Add(2)
+	go func() { defer wg0.Done(); ps = processes() }()
+	go func() { defer wg0.Done(); services = brewServices() }()
+	wg0.Wait()
 	checks := []func() Finding{
 		func() Finding { return checkLoad(ps, services) },
 		func() Finding { return checkMemory(ps, human) },
@@ -60,6 +65,12 @@ func Run(human Human) []Finding {
 		checkStartupAgents,
 		func() Finding { return checkServices(services) },
 		checkSnapshots,
+		checkBattery,
+		checkUpdates,
+		func() Finding {
+			ram, _ := strconv.ParseInt(sysctl("hw.memsize"), 10, 64)
+			return checkDockerMemory(ram, human)
+		},
 	}
 	out := make([]Finding, len(checks))
 	var wg sync.WaitGroup
@@ -70,6 +81,12 @@ func Run(human Human) []Finding {
 	wg.Wait()
 	sort.SliceStable(out, func(i, j int) bool { return out[i].Severity > out[j].Severity })
 	return out
+}
+
+// Quick runs only the fast CPU and memory checks (for live views).
+func Quick(human Human) []Finding {
+	ps := processes()
+	return []Finding{checkLoad(ps, nil), checkMemory(ps, human)}
 }
 
 func sysctl(name string) string { return sh.Line("sysctl", "-n", name) }
