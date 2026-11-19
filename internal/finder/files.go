@@ -61,3 +61,5 @@ func LargeVideos(days int, minB int64) []Item {
 		return size >= minB && videoExt[strings.ToLower(filepath.Ext(name))]
 	}, "video")
 }
+
+func fsxTime(st *syscall.Stat_t) time.Time { return fsx.AddedOrEdited(st) }
