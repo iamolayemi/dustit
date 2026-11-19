@@ -57,9 +57,10 @@ Nothing is deleted without asking unless you pass --yes. Start with:
 		&cobra.Group{ID: "find", Title: "Find what uses space:"},
 		&cobra.Group{ID: "speed", Title: "Speed:"},
 	)
-	configCmd := newConfigCmd()
-	configCmd.GroupID = "clean"
-	root.AddCommand(configCmd)
+	for _, c := range []*cobra.Command{newConfigCmd(), newScheduleCmd()} {
+		c.GroupID = "clean"
+		root.AddCommand(c)
+	}
 	doctorCmd := newDoctorCmd()
 	doctorCmd.GroupID = "speed"
 	root.AddCommand(doctorCmd)

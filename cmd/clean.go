@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"os/exec"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -14,6 +16,7 @@ func newCleanCmd() *cobra.Command {
 	var (
 		only               []string
 		all, yes, dry, tsh bool
+		notify             bool
 	)
 	c := &cobra.Command{
 		Use:   "clean",
@@ -84,6 +87,9 @@ func newCleanCmd() *cobra.Command {
 				return nil
 			}
 			after := fsx.FreeSpace()
+			if notify {
+				sendNotification("macclean", fmt.Sprintf("Freed %s · %s free", ui.Human(total), ui.Human(after)))
+			}
 			fmt.Printf("Freed about %s. Free space: %s → %s\n", ui.Bold.Render(ui.Human(total)), ui.Human(before), ui.Bold.Render(ui.Human(after)))
 			if trashed {
 				ui.Hint("Some items were moved to Trash. Empty it with: macclean clean --only trash")
@@ -100,6 +106,7 @@ func newCleanCmd() *cobra.Command {
 	f.BoolVarP(&yes, "yes", "y", false, "don't ask before each category")
 	f.BoolVarP(&dry, "dry-run", "n", false, "show what would be removed without removing anything")
 	f.BoolVar(&tsh, "trash", false, "move items to Trash instead of deleting them")
+	f.BoolVar(&notify, "notify", false, "show a macOS notification when done (used by scheduled runs)")
 	_ = c.RegisterFlagCompletionFunc("only", func(*cobra.Command, []string, string) ([]string, cobra.ShellCompDirective) {
 		return targets.IDs(), cobra.ShellCompDirectiveNoFileComp
 	})
@@ -144,4 +151,10 @@ func newListCmd() *cobra.Command {
 	}
 	c.Flags().BoolVar(&asJSON, "json", false, "print machine-readable JSON")
 	return c
+}
+
+// sendNotification shows a macOS notification; failures are ignored.
+func sendNotification(title, msg string) {
+	q := func(s string) string { return strings.ReplaceAll(strings.ReplaceAll(s, `\`, `\\`), `"`, `\"`) }
+	_ = exec.Command("osascript", "-e", fmt.Sprintf(`display notification "%s" with title "%s"`, q(msg), q(title))).Run()
 }
