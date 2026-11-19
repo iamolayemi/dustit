@@ -3,6 +3,9 @@ import Foundation
 
 @MainActor
 final class Model: ObservableObject {
+    /// The one model the menu bar panel and dustit:// links share.
+    static let shared = Model()
+
     @Published var free: Int64 = freeSpace()
     @Published var total: Int64 = totalSpace()
     @Published var scan: Scan?
@@ -154,6 +157,19 @@ final class Model: ObservableObject {
             try await NSWorkspace.shared.open([url], withApplicationAt: editor, configuration: NSWorkspace.OpenConfiguration())
         } catch {
             banner = Banner(text: "Couldn't open settings: \(error.localizedDescription)", isError: true)
+        }
+    }
+
+    /// dustit://clean, report, scan, choose, doctor, explore
+    func handle(_ url: URL) {
+        switch url.host ?? url.path {
+        case "clean": Task { await cleanSafe() }
+        case "report": Task { await openReport() }
+        case "scan": Task { await refresh() }
+        case "choose", "ui": openInTerminal("ui")
+        case "doctor": openInTerminal("doctor")
+        case "explore": openInTerminal("explore")
+        default: banner = Banner(text: "Unknown link \(url.absoluteString)", isError: true)
         }
     }
 

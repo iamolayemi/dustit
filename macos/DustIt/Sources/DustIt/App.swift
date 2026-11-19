@@ -3,7 +3,8 @@ import SwiftUI
 
 @main
 struct DustItApp: App {
-    @StateObject private var model = Model()
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
+    @StateObject private var model = Model.shared
 
     init() {
         // `DustIt --snapshot <dir>` renders the panel with sample data (light + dark) and exits.
@@ -26,5 +27,14 @@ struct DustItApp: App {
             }
         }
         .menuBarExtraStyle(.window)
+    }
+}
+
+/// Handles dustit:// links (from Shortcuts' "Open URL", Raycast or a browser).
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    func application(_ application: NSApplication, open urls: [URL]) {
+        for url in urls {
+            Task { @MainActor in Model.shared.handle(url) }
+        }
     }
 }

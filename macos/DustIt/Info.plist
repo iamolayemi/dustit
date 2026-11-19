@@ -20,6 +20,17 @@
 	<string>13.0</string>
 	<key>LSUIElement</key>
 	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.github.iamolayemi.dustit</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>dustit</string>
+			</array>
+		</dict>
+	</array>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>DustIt opens Terminal to run the interactive picker.</string>
 </dict>
