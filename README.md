@@ -43,6 +43,12 @@ $ macclean scan
 
 ## Install
 
+**Homebrew:**
+
+```bash
+brew install iamolayemi/tap/macclean
+```
+
 **Download a release.** Grab the universal (Intel + Apple Silicon) binary from
 [Releases](https://github.com/iamolayemi/macclean/releases):
 

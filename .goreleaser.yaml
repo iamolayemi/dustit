@@ -32,3 +32,29 @@ changelog:
   sort: asc
   filters:
     exclude: ["^docs:", "^test:", "^ci:", "^chore:"]
+
+# `brew install iamolayemi/tap/macclean`. Needs a HOMEBREW_TAP_GITHUB_TOKEN secret that can
+# push to iamolayemi/homebrew-tap; without it the cask step is skipped and the release still ships.
+homebrew_casks:
+  - name: macclean
+    binaries: [macclean]
+    directory: Casks
+    homepage: https://github.com/iamolayemi/macclean
+    description: Careful disk cleaner for macOS, made for developers
+    license: MIT
+    repository:
+      owner: iamolayemi
+      name: homebrew-tap
+      token: '{{ index .Env "HOMEBREW_TAP_GITHUB_TOKEN" }}'
+    skip_upload: '{{ if index .Env "HOMEBREW_TAP_GITHUB_TOKEN" }}false{{ else }}true{{ end }}'
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    commit_msg_template: "macclean {{ .Tag }}"
+    hooks:
+      post:
+        # Release binaries aren't notarized; clear the quarantine flag so macOS lets them run.
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/macclean"]
+          end

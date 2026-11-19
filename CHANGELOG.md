@@ -14,3 +14,4 @@ and this project uses [Semantic Versioning](https://semver.org/).
 - `docker`: inspect and prune Docker Desktop's disk image and wait for it to shrink.
 - `projects`, `dupes`, `old`, `large`, `top`, `apps`, `leftovers` finder commands.
 - Shell completion, including category names for `clean --only`.
+- Homebrew install: `brew install iamolayemi/tap/macclean`.
