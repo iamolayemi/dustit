@@ -1,6 +1,6 @@
 module github.com/iamolayemi/macclean
 
-go 1.24
+go 1.26.0
 
 require (
 	github.com/briandowns/spinner v1.23.2
@@ -9,7 +9,7 @@ require (
 	github.com/muesli/termenv v0.16.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.9
-	golang.org/x/term v0.30.0
+	golang.org/x/term v0.48.0
 )
 
 require (
@@ -26,5 +26,5 @@ require (
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
-	golang.org/x/sys v0.31.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
 )
