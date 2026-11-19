@@ -16,12 +16,13 @@ import (
 
 // Item is something that could be removed.
 type Item struct {
-	Path string
-	Size int64
-	Age  time.Time
-	Note string
-	App  bool     // an .app bundle in /Applications: removed with fsx.TrashApp
-	Cmd  []string // removed by running this command instead of deleting Path
+	Path   string
+	Size   int64
+	Age    time.Time
+	Note   string
+	App    bool     // an .app bundle in /Applications: removed with fsx.TrashApp
+	NoSize bool     // frees no meaningful space (e.g. git branches): don't measure Path
+	Cmd    []string // removed by running this command instead of deleting Path
 }
 
 // Total sums item sizes.
@@ -69,7 +70,7 @@ func Parallel(n int, fn func(i int)) {
 func Measure(items []Item) (denied int) {
 	var mu sync.Mutex
 	Parallel(len(items), func(i int) {
-		if items[i].Size != 0 {
+		if items[i].Size != 0 || items[i].NoSize {
 			return
 		}
 		u := fsx.DiskUsage(items[i].Path)

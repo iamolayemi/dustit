@@ -25,6 +25,23 @@ func Insights(human func(int64) string) []Insight {
 			Hint: "See what's inside with `macclean docker`; prune it with `macclean docker --clean`.",
 		})
 	}
+	orb := fsx.H("Library/Group Containers/HUAQ24HBR6.dev.orbstack")
+	if fsx.Exists(orb) {
+		img := filepath.Join(orb, "data/data.img")
+		if fsx.MayRead(img) {
+			if u := fsx.DiskUsage(img).Bytes; u > 1e9 {
+				out = append(out, Insight{
+					Text: fmt.Sprintf("OrbStack's disk image uses %s.", human(u)),
+					Hint: "OrbStack works with the docker CLI: `macclean docker --clean` prunes it too.",
+				})
+			}
+		} else {
+			out = append(out, Insight{
+				Text: "OrbStack is installed; its disk image can't be measured without Full Disk Access.",
+				Hint: "Prune it with `macclean docker --clean` (OrbStack works with the docker CLI).",
+			})
+		}
+	}
 	if s, err := sh.Quiet("tmutil", "listlocalsnapshots", "/"); err == nil {
 		if n := strings.Count(s, "com.apple.TimeMachine"); n > 0 {
 			out = append(out, Insight{

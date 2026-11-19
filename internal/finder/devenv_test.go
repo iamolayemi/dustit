@@ -1,6 +1,7 @@
 package finder
 
 import (
+	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
@@ -65,5 +66,38 @@ func TestOwnerOf(t *testing.T) {
 	}
 	if _, ok := ownerOf("com.spotify.client", names); ok {
 		t.Error("an app that isn't installed must not get an owner")
+	}
+}
+
+func TestMergedBranches(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git not installed")
+	}
+	root := t.TempDir()
+	repo := filepath.Join(root, "app")
+	run := func(args ...string) {
+		t.Helper()
+		cmd := exec.Command("git", append([]string{"-C", repo}, args...)...)
+		cmd.Env = append(os.Environ(), "GIT_AUTHOR_DATE=2020-01-01T00:00:00", "GIT_COMMITTER_DATE=2020-01-01T00:00:00",
+			"GIT_AUTHOR_NAME=t", "GIT_AUTHOR_EMAIL=t@t", "GIT_COMMITTER_NAME=t", "GIT_COMMITTER_EMAIL=t@t")
+		if out, err := cmd.CombinedOutput(); err != nil {
+			t.Fatalf("git %v: %s", args, out)
+		}
+	}
+	_ = os.MkdirAll(repo, 0o755)
+	run("init", "-q", "-b", "main")
+	run("commit", "-q", "--allow-empty", "-m", "init")
+	run("branch", "feature-done")      // merged (same commit), old
+	run("checkout", "-q", "-b", "wip") // not merged
+	run("commit", "-q", "--allow-empty", "-m", "wip")
+	run("checkout", "-q", "main")
+
+	items := MergedBranches([]string{root}, 90)
+	if len(items) != 1 {
+		t.Fatalf("want one repo, got %+v", items)
+	}
+	cmd := items[0].Cmd
+	if cmd[len(cmd)-1] != "feature-done" || len(cmd) != 6 {
+		t.Errorf("only the merged branch should be deleted, got %v", cmd)
 	}
 }

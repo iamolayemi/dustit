@@ -1,6 +1,7 @@
 package targets
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -12,6 +13,9 @@ func itoa(n int) string          { return strconv.Itoa(n) }
 func displayCmd(a []string) string {
 	if len(a) >= 5 && a[0] == "sh" && a[1] == "-c" {
 		return strings.ReplaceAll(a[2], `"$1"`, `"`+a[4]+`"`)
+	}
+	if len(a) > 8 {
+		return joinArgs(a[:7]) + fmt.Sprintf(" … (+%d more)", len(a)-7)
 	}
 	return joinArgs(a)
 }
