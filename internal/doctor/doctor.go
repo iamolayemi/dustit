@@ -172,7 +172,7 @@ func checkLoad(ps []Process, services []brewService) Finding {
 	f.Summary = fmt.Sprintf("%.1f tasks waiting on %d cores (5-min average)", five, n)
 	f.Short = fmt.Sprintf("%.0f%% busy", ratio*100)
 	if ratio > 1 {
-		f.Short = fmt.Sprintf("%.0f× more work than it can run", ratio)
+		f.Short = fmt.Sprintf("%.0f× overloaded", ratio)
 	}
 	switch {
 	case ratio > 2:

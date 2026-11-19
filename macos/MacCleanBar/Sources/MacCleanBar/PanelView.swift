@@ -1,318 +1,256 @@
 import SwiftUI
 
-/// macclean's accent: a calm teal.
-let brand = Color(red: 0.13, green: 0.60, blue: 0.53)
-
+/// The panel follows macOS's own menu bar extras (Wi-Fi, Battery): system font, menu-item
+/// rows with the standard highlight, small section headers, numbers aligned right, and
+/// colour only where it carries meaning.
 struct PanelView: View {
     @EnvironmentObject var model: Model
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Header()
+        VStack(alignment: .leading, spacing: 0) {
+            DiskHeader()
+            MenuDivider()
+
+            if let scan = model.scan {
+                let rows = Array(scan.categories.filter { $0.size_bytes > 0 }.sorted { $0.size_bytes > $1.size_bytes }.prefix(4))
+                if !rows.isEmpty {
+                    SectionHeader("Cleanable")
+                    ForEach(rows) { c in
+                        InfoRow(title: c.name, value: oneDecimal(c.size_bytes))
+                    }
+                    MenuDivider()
+                }
+                MenuItem(title: scan.safe_bytes > 0 ? "Clean Up \(oneDecimal(scan.safe_bytes))…" : "Nothing to Clean Up",
+                         enabled: scan.safe_bytes > 0 && !model.busy) { Task { await model.cleanSafe() } }
+                if scan.review_bytes > 0 {
+                    MenuItem(title: "Review \(oneDecimal(scan.review_bytes))…") { model.openInTerminal("ui") }
+                }
+            } else {
+                StatusRow(text: model.scanning ? "Scanning…" : "No scan yet", spinning: model.scanning)
+            }
+            if model.cleaning {
+                StatusRow(text: "Cleaning…", spinning: true)
+            }
             if let banner = model.banner {
-                BannerView(banner: banner) { model.banner = nil }
+                StatusRow(text: banner.text, spinning: false, warning: banner.isError)
             }
-            CleanBlock()
-            if let scan = model.scan, scan.categories.contains(where: { $0.size_bytes > 0 }) {
-                Card(title: "Where the space is") { CategoryRows(scan: scan) }
+
+            MenuDivider()
+            SectionHeader("Health")
+            HealthSection()
+
+            MenuDivider()
+            MenuItem(title: "Storage Report") { Task { await model.openReport() } }
+            MenuItem(title: "Full Health Check…") { model.openInTerminal("doctor") }
+            MenuItem(title: "Undo Last Clean-Up…") { model.openInTerminal("undo") }
+            MenuItem(title: "Settings…") { model.openInTerminal("config edit") }
+            MenuToggle(title: "Show Free Space in Menu Bar", isOn: model.showSizeInMenuBar) {
+                model.showSizeInMenuBar.toggle()
             }
-            Card(title: "Health") { HealthRows() }
-            Footer()
+
+            MenuDivider()
+            MenuItem(title: "Scan Now", shortcut: "⌘R", enabled: !model.busy) { Task { await model.refresh() } }
+                .keyboardShortcut("r")
+            MenuItem(title: "Quit macclean bar", shortcut: "⌘Q") { NSApp.terminate(nil) }
+                .keyboardShortcut("q")
+            if let updated = model.updated, !model.scanning {
+                Text("Updated \(updated, format: .relative(presentation: .named))")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.tertiary)
+                    .padding(.horizontal, 14).padding(.top, 4).padding(.bottom, 2)
+            }
         }
-        .padding(14)
-        .frame(width: 330)
+        .padding(5)
+        .frame(width: 290)
     }
 }
 
 // MARK: - Header
 
-private struct Header: View {
+private struct DiskHeader: View {
     @EnvironmentObject var model: Model
 
     var body: some View {
-        HStack(spacing: 12) {
-            Ring(fraction: model.usedFraction, tint: tint)
-                .frame(width: 40, height: 40)
-            VStack(alignment: .leading, spacing: 1) {
-                Text("\(oneDecimal(model.free)) available")
-                    .font(.system(size: 17, weight: .semibold, design: .rounded))
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Macintosh HD").font(.system(size: 13, weight: .semibold))
+                Spacer()
+                Text("\(oneDecimal(model.free)) free")
+                    .font(.system(size: 13))
                     .monospacedDigit()
-                Text("of \(oneDecimal(model.total)) on Macintosh HD")
-                    .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            Spacer(minLength: 0)
-            if model.scanning {
-                ProgressView().controlSize(.small).help("Scanning…")
+            CapacityBar(fraction: model.usedFraction)
+            Text("\(oneDecimal(model.used)) of \(oneDecimal(model.total)) used")
+                .font(.system(size: 11))
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, 9).padding(.top, 6).padding(.bottom, 4)
+    }
+}
+
+/// A plain capacity bar like the one in System Settings → Storage.
+private struct CapacityBar: View {
+    let fraction: Double
+
+    var body: some View {
+        GeometryReader { g in
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 3).fill(Color.primary.opacity(0.1))
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(fill)
+                    .frame(width: max(6, g.size.width * fraction))
             }
         }
+        .frame(height: 6)
     }
 
-    private var tint: Color {
-        switch model.usedFraction {
-        case ..<0.8: return brand
-        case ..<0.9: return .orange
+    /// Neutral until space actually gets tight.
+    private var fill: Color {
+        switch fraction {
+        case ..<0.85: return Color.primary.opacity(0.55)
+        case ..<0.93: return .orange
         default: return .red
         }
     }
 }
 
-private struct Ring: View {
-    let fraction: Double
-    let tint: Color
+// MARK: - Health
 
-    var body: some View {
-        ZStack {
-            Circle().stroke(Color.primary.opacity(0.09), lineWidth: 4)
-            Circle()
-                .trim(from: 0, to: fraction)
-                .stroke(tint, style: StrokeStyle(lineWidth: 4, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-                .animation(.easeOut(duration: 0.5), value: fraction)
-            Text("\(Int((fraction * 100).rounded()))%")
-                .font(.system(size: 10, weight: .semibold, design: .rounded))
-                .monospacedDigit()
-                .foregroundStyle(.secondary)
-        }
-    }
-}
-
-// MARK: - Clean
-
-private struct CleanBlock: View {
-    @EnvironmentObject var model: Model
-
-    var body: some View {
-        VStack(spacing: 6) {
-            Button {
-                Task { await model.cleanSafe() }
-            } label: {
-                HStack(spacing: 6) {
-                    if model.cleaning {
-                        ProgressView().controlSize(.small)
-                        Text("Cleaning…")
-                    } else {
-                        Text(title)
-                    }
-                }
-                .font(.system(size: 13, weight: .semibold))
-                .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(brand)
-            .controlSize(.large)
-            .disabled(model.busy || (model.scan?.safe_bytes ?? 0) == 0)
-
-            if let review = model.scan?.review_bytes, review > 0 {
-                Button { model.openInTerminal("ui") } label: {
-                    Text("\(oneDecimal(review)) more to review →")
-                        .font(.caption)
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(.secondary)
-                .help("Choose what to remove in the interactive picker (opens Terminal)")
-            }
-        }
-    }
-
-    private var title: String {
-        guard let scan = model.scan else { return model.scanning ? "Scanning…" : "Clean" }
-        return scan.safe_bytes > 0 ? "Clean \(oneDecimal(scan.safe_bytes)) safely" : "Nothing safe to clean right now"
-    }
-}
-
-// MARK: - Rows
-
-private struct CategoryRows: View {
-    let scan: Scan
-
-    var body: some View {
-        let top = Array(scan.categories.filter { $0.size_bytes > 0 }.sorted { $0.size_bytes > $1.size_bytes }.prefix(4))
-        ForEach(Array(top.enumerated()), id: \.element.id) { i, c in
-            Row(divider: i > 0) {
-                IconTile(symbol: categorySymbol(c.id), tint: c.risk == "safe" ? brand : .orange)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(c.name).font(.callout).lineLimit(1)
-                    Text(c.risk == "safe" ? "Rebuilt automatically" : "Worth a look first")
-                        .font(.caption2).foregroundStyle(.secondary)
-                }
-                Spacer(minLength: 8)
-                Text(oneDecimal(c.size_bytes))
-                    .font(.callout).monospacedDigit().foregroundStyle(.secondary)
-            }
-        }
-    }
-}
-
-private struct HealthRows: View {
+private struct HealthSection: View {
     @EnvironmentObject var model: Model
 
     var body: some View {
         if !model.healthLoaded {
-            Row(divider: false) {
-                ProgressView().controlSize(.small).frame(width: 26)
-                Text("Checking your Mac…").font(.callout).foregroundStyle(.secondary)
-                Spacer()
-            }
+            StatusRow(text: "Checking…", spinning: true)
         } else if model.health.isEmpty {
-            Row(divider: false) {
-                IconTile(symbol: "checkmark", tint: brand)
-                Text("Nothing is slowing your Mac down").font(.callout)
-                Spacer()
-            }
+            InfoRow(title: "No problems found", value: "")
         } else {
-            let shown = Array(model.health.prefix(3))
-            ForEach(Array(shown.enumerated()), id: \.element.id) { i, f in
-                Row(divider: i > 0) {
-                    IconTile(symbol: healthSymbol(f.check), tint: f.severity == "bad" ? .red : .orange)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(f.check).font(.callout)
-                        Text(f.short ?? f.summary).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
-                    }
-                    Spacer(minLength: 0)
-                }
-                .help(([f.summary] + (f.advice ?? [])).joined(separator: "\n"))
-            }
-            if model.health.count > shown.count {
-                Row(divider: true) {
-                    Button { model.openInTerminal("doctor") } label: {
-                        Text("\(model.health.count - shown.count) more — open the full check →").font(.caption)
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(.secondary)
-                    Spacer()
-                }
+            ForEach(model.health.prefix(4)) { f in
+                InfoRow(title: f.check, value: f.short ?? f.summary,
+                        marker: f.severity == "bad" ? .red : .orange)
+                    .help(([f.summary] + (f.advice ?? [])).joined(separator: "\n"))
             }
         }
     }
 }
 
-private func categorySymbol(_ id: String) -> String {
-    switch id {
-    case "user-caches", "electron-caches", "dot-cache": return "tray.full"
-    case "user-logs", "gradle-daemon-logs": return "doc.text"
-    case "trash": return "trash"
-    case "old-downloads", "installers": return "arrow.down.circle"
-    case "stale-deps", "npm-cache", "yarn-cache", "pnpm-store", "pnpm-old-stores", "bun-cache", "composer-cache",
-         "cargo-cache", "gradle-cache", "maven-repo", "cocoapods-specs", "go-modcache": return "shippingbox"
-    case "old-versions", "jetbrains-old": return "square.stack.3d.up"
-    case "old-files", "large-videos": return "clock.arrow.circlepath"
-    case "duplicates": return "doc.on.doc"
-    case "screenshots": return "camera.viewfinder"
-    case "docker", "dev-vms", "minikube-cache": return "cube"
-    case "xcode-derived", "xcode-device-support", "simulator-caches", "simulator-devices", "xcode-archives": return "hammer"
-    case "ai-models", "ai-tool-data": return "sparkles"
-    case "homebrew": return "mug"
-    case "git-gc": return "arrow.triangle.branch"
-    case "icloud-evict": return "icloud"
-    default: return "folder"
-    }
-}
+// MARK: - Menu building blocks
 
-private func healthSymbol(_ check: String) -> String {
-    switch check {
-    case "CPU load": return "cpu"
-    case "Memory": return "memorychip"
-    case "Disk space": return "internaldrive"
-    case "Battery": return "battery.25percent"
-    case "Temperature": return "thermometer.medium"
-    case "Spotlight": return "magnifyingglass"
-    case "Browsers": return "globe"
-    case "Docker": return "cube"
-    case "Startup items": return "power"
-    case "macOS updates": return "arrow.down.circle"
-    default: return "stethoscope"
-    }
-}
-
-// MARK: - Footer
-
-private struct Footer: View {
-    @EnvironmentObject var model: Model
-
-    var body: some View {
-        HStack(spacing: 0) {
-            IconButton(symbol: "arrow.clockwise", help: "Scan again") { Task { await model.refresh() } }
-                .disabled(model.busy)
-            IconButton(symbol: "chart.pie", help: "Open the storage report") { Task { await model.openReport() } }
-            IconButton(symbol: "checklist", help: "Choose what to clean (opens Terminal)") { model.openInTerminal("ui") }
-            Spacer()
-            Group {
-                if model.scanning {
-                    Text("Scanning…")
-                } else if let updated = model.updated {
-                    Text("Updated \(updated, format: .relative(presentation: .named))")
-                }
-            }
-            .font(.caption2)
-            .foregroundStyle(.tertiary)
-            Menu {
-                Button("Full health check") { model.openInTerminal("doctor") }
-                Button("Undo last clean") { model.openInTerminal("undo") }
-                Button("Settings…") { model.openInTerminal("config edit") }
-                Divider()
-                Toggle("Show free space in the menu bar", isOn: Binding(get: { model.showSizeInMenuBar }, set: { model.showSizeInMenuBar = $0 }))
-                Divider()
-                Button("Quit") { NSApp.terminate(nil) }
-            } label: {
-                Image(systemName: "ellipsis")
-            }
-            .menuStyle(.borderlessButton)
-            .menuIndicator(.hidden)
-            .fixedSize()
-            .padding(.leading, 8)
-        }
-        .foregroundStyle(.secondary)
-    }
-}
-
-// MARK: - Building blocks
-
-/// A titled, rounded group of rows, like System Settings.
-private struct Card<Content: View>: View {
+private struct SectionHeader: View {
     let title: String
-    @ViewBuilder let content: Content
+    init(_ title: String) { self.title = title }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(title)
-                .font(.caption.weight(.medium))
-                .foregroundStyle(.secondary)
-                .padding(.leading, 4)
-            VStack(spacing: 0) { content }
-                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.primary.opacity(0.045)))
-                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Color.primary.opacity(0.06)))
-        }
+        Text(title)
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 9).padding(.top, 3).padding(.bottom, 2)
     }
 }
 
-private struct Row<Content: View>: View {
-    let divider: Bool
-    @ViewBuilder let content: Content
+/// A non-interactive line: label on the left, value on the right.
+private struct InfoRow: View {
+    let title: String
+    let value: String
+    var marker: Color? = nil
+
+    var body: some View {
+        HStack(spacing: 6) {
+            if let marker {
+                Circle().fill(marker).frame(width: 6, height: 6)
+            }
+            Text(title).lineLimit(1)
+            Spacer(minLength: 12)
+            Text(value).lineLimit(1).monospacedDigit().foregroundStyle(.secondary)
+        }
+        .font(.system(size: 13))
+        .padding(.horizontal, 9)
+        .frame(height: 22)
+    }
+}
+
+/// A clickable menu item with the standard accent highlight on hover.
+private struct MenuItem: View {
+    let title: String
+    var shortcut: String? = nil
+    var enabled: Bool = true
+    let action: () -> Void
     @StateObject private var hover = Hover()
 
     var body: some View {
-        VStack(spacing: 0) {
-            if divider { Divider().padding(.leading, 46) }
-            HStack(spacing: 10) { content }
-                .padding(.horizontal, 10).padding(.vertical, 7)
-                .background(Color.primary.opacity(hover.on ? 0.04 : 0))
-                .onHover { hover.on = $0 }
+        Button(action: action) {
+            HStack {
+                Text(title)
+                Spacer()
+                if let shortcut {
+                    Text(shortcut).foregroundStyle(highlighted ? Color.white.opacity(0.8) : .secondary)
+                }
+            }
+            .font(.system(size: 13))
+            .foregroundStyle(highlighted ? Color.white : (enabled ? Color.primary : Color.secondary.opacity(0.6)))
+            .padding(.horizontal, 9)
+            .frame(height: 22)
+            .contentShape(Rectangle())
+            .background(RoundedRectangle(cornerRadius: 4).fill(highlighted ? Color.accentColor : .clear))
         }
+        .buttonStyle(.plain)
+        .disabled(!enabled)
+        .onHover { hover.on = $0 }
+    }
+
+    private var highlighted: Bool { hover.on && enabled }
+}
+
+private struct MenuToggle: View {
+    let title: String
+    let isOn: Bool
+    let action: () -> Void
+    @StateObject private var hover = Hover()
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Text(title)
+                Spacer()
+                if isOn { Image(systemName: "checkmark").font(.system(size: 11, weight: .semibold)) }
+            }
+            .font(.system(size: 13))
+            .foregroundStyle(hover.on ? Color.white : Color.primary)
+            .padding(.horizontal, 9)
+            .frame(height: 22)
+            .contentShape(Rectangle())
+            .background(RoundedRectangle(cornerRadius: 4).fill(hover.on ? Color.accentColor : .clear))
+        }
+        .buttonStyle(.plain)
+        .onHover { hover.on = $0 }
     }
 }
 
-private struct IconTile: View {
-    let symbol: String
-    let tint: Color
+private struct StatusRow: View {
+    let text: String
+    let spinning: Bool
+    var warning: Bool = false
 
     var body: some View {
-        Image(systemName: symbol)
-            .font(.system(size: 12, weight: .semibold))
-            .foregroundStyle(tint)
-            .frame(width: 26, height: 26)
-            .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(tint.opacity(0.14)))
+        HStack(spacing: 6) {
+            if spinning { ProgressView().controlSize(.mini) }
+            if warning { Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange).font(.system(size: 10)) }
+            Text(text).fixedSize(horizontal: false, vertical: true)
+        }
+        .font(.system(size: 12))
+        .foregroundStyle(.secondary)
+        .padding(.horizontal, 9).padding(.vertical, 3)
+    }
+}
+
+private struct MenuDivider: View {
+    var body: some View {
+        Rectangle()
+            .fill(Color.primary.opacity(0.1))
+            .frame(height: 1)
+            .padding(.horizontal, 9).padding(.vertical, 5)
     }
 }
 
@@ -321,44 +259,7 @@ final class Hover: ObservableObject {
     @Published var on = false
 }
 
-private struct IconButton: View {
-    let symbol: String
-    let help: String
-    let action: () -> Void
-    @StateObject private var hover = Hover()
-
-    var body: some View {
-        Button(action: action) {
-            Image(systemName: symbol)
-                .font(.system(size: 12, weight: .medium))
-                .frame(width: 28, height: 24)
-                .background(RoundedRectangle(cornerRadius: 6).fill(Color.primary.opacity(hover.on ? 0.08 : 0)))
-        }
-        .buttonStyle(.plain)
-        .help(help)
-        .onHover { hover.on = $0 }
-    }
-}
-
-private struct BannerView: View {
-    let banner: Model.Banner
-    let dismiss: () -> Void
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 8) {
-            Image(systemName: banner.isError ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
-                .foregroundStyle(banner.isError ? Color.orange : brand)
-            Text(banner.text).font(.caption).fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: 0)
-            Button(action: dismiss) { Image(systemName: "xmark").font(.caption2.weight(.bold)) }
-                .buttonStyle(.plain).foregroundStyle(.secondary)
-        }
-        .padding(10)
-        .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill((banner.isError ? Color.orange : brand).opacity(0.12)))
-    }
-}
-
-/// "112.5 GB" — one decimal, Finder-style units.
+/// "112.4 GB" — one decimal, Finder-style units.
 func oneDecimal(_ bytes: Int64) -> String {
     let units = ["B", "KB", "MB", "GB", "TB"]
     var v = Double(bytes)
