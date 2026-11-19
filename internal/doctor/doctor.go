@@ -71,6 +71,11 @@ func Run(human Human) []Finding {
 			ram, _ := strconv.ParseInt(sysctl("hw.memsize"), 10, 64)
 			return checkDockerMemory(ram, human)
 		},
+		func() Finding { return checkSpotlight(ps, sh.Line("mdutil", "-s", "/")) },
+		func() Finding {
+			ram, _ := strconv.ParseInt(sysctl("hw.memsize"), 10, 64)
+			return checkBrowsers(ps, ram, human)
+		},
 	}
 	out := make([]Finding, len(checks))
 	var wg sync.WaitGroup

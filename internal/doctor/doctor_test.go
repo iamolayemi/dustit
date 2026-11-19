@@ -66,3 +66,24 @@ func TestBrewServiceFor(t *testing.T) {
 		t.Errorf("non-Homebrew binary matched %q", got)
 	}
 }
+
+func TestSpotlightAndBrowsers(t *testing.T) {
+	ps := []Process{
+		{CPU: 70, Path: "/System/Library/Frameworks/CoreServices.framework/Frameworks/Metadata.framework/Support/mds_stores"},
+		{CPU: 20, Path: "/usr/libexec/mdworker_shared"},
+		{RSS: 3 << 30, Path: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"},
+		{RSS: 2 << 30, Path: "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Helpers/Google Chrome Helper (Renderer).app/Contents/MacOS/Google Chrome Helper (Renderer)"},
+		{RSS: 1 << 30, Path: "/System/Library/Frameworks/WebKit.framework/Versions/A/XPCServices/com.apple.WebKit.WebContent.xpc/Contents/MacOS/com.apple.WebKit.WebContent"},
+	}
+	human := func(n int64) string { return "x" }
+	if f := checkSpotlight(ps, "/:\n\tIndexing enabled."); f.Severity != Warn {
+		t.Errorf("90%% Spotlight CPU should warn: %+v", f)
+	}
+	if f := checkSpotlight(nil, "/:\n\tIndexing disabled."); f.Severity != Info {
+		t.Errorf("disabled indexing should be reported: %+v", f)
+	}
+	f := checkBrowsers(ps, 16<<30, human)
+	if f.Severity != Warn || len(f.Details) != 2 {
+		t.Errorf("6 GB of browsers on 16 GB should warn with Chrome and Safari rows: %+v", f)
+	}
+}

@@ -3,6 +3,8 @@ package doctor
 import (
 	"encoding/json"
 	"fmt"
+	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -89,6 +91,87 @@ func checkDockerMemory(ram int64, human Human) Finding {
 	} else {
 		f.Severity = Info
 		f.Advice = append(f.Advice, "Quit Docker Desktop when you're not using it to give that memory back.")
+	}
+	return f
+}
+
+var spotlightProcs = map[string]bool{"mds": true, "mds_stores": true, "mdworker": true, "mdworker_shared": true, "mdsync": true}
+
+func checkSpotlight(ps []Process, status string) Finding {
+	f := Finding{Check: "Spotlight"}
+	if strings.Contains(status, "disabled") {
+		f.Severity = Info
+		f.Summary = "indexing is turned off for the startup disk"
+		f.Advice = append(f.Advice, "Search, Mail and some apps rely on it. Turn it back on with: sudo mdutil -i on /")
+		return f
+	}
+	var cpu float64
+	for _, p := range ps {
+		if spotlightProcs[filepath.Base(p.Path)] {
+			cpu += p.CPU
+		}
+	}
+	f.Summary = fmt.Sprintf("indexing on, using %.0f%% CPU", cpu)
+	switch {
+	case cpu >= 80:
+		f.Severity = Warn
+		f.Summary += " — busy indexing"
+		f.Advice = append(f.Advice,
+			"Indexing after an update or many new files is normal and finishes on its own.",
+			"If it stays this busy for hours, rebuild the index: sudo mdutil -E /",
+			"Exclude big folders you never search (node_modules-heavy project folders, VM disks) in System Settings → Spotlight → Search Privacy.")
+	case cpu >= 30:
+		f.Severity = Info
+		f.Summary += " — indexing new files"
+	}
+	return f
+}
+
+// browserApps maps process/app names to the browser they belong to.
+var browserApps = map[string]string{
+	"Google Chrome": "Chrome", "Google Chrome Helper": "Chrome", "Arc": "Arc", "Brave Browser": "Brave",
+	"Microsoft Edge": "Edge", "Firefox": "Firefox", "Opera": "Opera", "Vivaldi": "Vivaldi", "Safari": "Safari",
+	"com.apple.WebKit.WebContent": "Safari & WebKit apps", "com.apple.WebKit.GPU": "Safari & WebKit apps",
+	"com.apple.WebKit.Networking": "Safari & WebKit apps", "Zen": "Zen", "Orion": "Orion",
+}
+
+func checkBrowsers(ps []Process, ram int64, human Human) Finding {
+	f := Finding{Check: "Browsers"}
+	type use struct {
+		rss   int64
+		count int
+	}
+	by := map[string]*use{}
+	var order []string
+	var total int64
+	for _, p := range ps {
+		b, ok := browserApps[p.Name()]
+		if !ok {
+			continue
+		}
+		if by[b] == nil {
+			by[b] = &use{}
+			order = append(order, b)
+		}
+		by[b].rss += p.RSS
+		by[b].count++
+		total += p.RSS
+	}
+	if total == 0 {
+		f.Summary = "no browser running"
+		return f
+	}
+	sort.Slice(order, func(i, j int) bool { return by[order[i]].rss > by[order[j]].rss })
+	for _, b := range order {
+		f.Details = append(f.Details, fmt.Sprintf("%9s  %s (%d processes)", human(by[b].rss), b, by[b].count))
+	}
+	f.Summary = fmt.Sprintf("using %s of memory", human(total))
+	if ram > 0 && total > ram/4 {
+		f.Severity = Warn
+		f.Summary += fmt.Sprintf(" — %.0f%% of your RAM", float64(total)/float64(ram)*100)
+		f.Advice = append(f.Advice,
+			"Each tab is its own process. Close tabs you aren't using, or let the browser sleep them:",
+			"Chrome/Edge/Brave: Settings → Performance → Memory Saver. Arc: Settings → Auto Archive. Safari unloads background tabs itself.")
 	}
 	return f
 }
