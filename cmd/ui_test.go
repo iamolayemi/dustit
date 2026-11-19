@@ -62,3 +62,22 @@ func TestPicker(t *testing.T) {
 		t.Fatal("y should confirm")
 	}
 }
+
+func TestExplorerNavigation(t *testing.T) {
+	dir := t.TempDir()
+	m := newExplorer(dir)
+	m.loading = false
+	sub := dir + "/sub"
+	m.items = []finder.Item{{Path: sub, Size: 100}, {Path: dir + "/file", Size: 10}}
+	m.cache[dir] = m.items
+	var model tea.Model = m
+	model, _ = model.Update(key("down"))
+	if model.(explorer).cursor[dir] != 1 {
+		t.Fatal("down should move the cursor")
+	}
+	model, _ = model.Update(key("d"))
+	// the temp dir is outside home, so the guard must refuse instead of asking
+	if model.(explorer).confirm || !strings.Contains(model.(explorer).status, "refusing") {
+		t.Errorf("deleting outside home must be refused, got %+v", model.(explorer).status)
+	}
+}
