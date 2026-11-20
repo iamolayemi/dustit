@@ -9,6 +9,14 @@ struct DustItApp: App {
     init() {
         // `DustIt --snapshot <dir>` renders the panel with sample data (light + dark) and exits.
         let args = CommandLine.arguments
+        if let i = args.firstIndex(of: "--login-item"), i + 1 < args.count {
+            // `DustIt --login-item on|off|status` manages Open at Login from the command line.
+            if args[i + 1] != "status", let err = LoginItem.set(args[i + 1] == "on") {
+                print("error: \(err)")
+            }
+            print("Open at Login: \(LoginItem.statusText)")
+            exit(0)
+        }
         if let i = args.firstIndex(of: "--iconset"), i + 1 < args.count {
             // `DustIt --iconset Foo.iconset` writes every size iconutil needs for the .icns.
             try? FileManager.default.createDirectory(atPath: args[i + 1], withIntermediateDirectories: true)

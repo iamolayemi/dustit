@@ -17,6 +17,16 @@ final class Model: ObservableObject {
     @Published var banner: Banner?
     @Published var updated: Date?
     /// Icon-only keeps the item narrow, so a crowded (notched) menu bar is less likely to hide it.
+    /// Whether DustIt opens when you log in (a macOS login item).
+    @Published var openAtLogin: Bool = LoginItem.isEnabled
+
+    func toggleOpenAtLogin() {
+        if let err = LoginItem.set(!openAtLogin) {
+            banner = Banner(text: "Couldn't change Open at Login: \(err)", isError: true)
+        }
+        openAtLogin = LoginItem.isEnabled
+    }
+
     @Published var showSizeInMenuBar: Bool = UserDefaults.standard.object(forKey: "showSize") as? Bool ?? true {
         didSet { UserDefaults.standard.set(showSizeInMenuBar, forKey: "showSize") }
     }

@@ -52,6 +52,9 @@ struct PanelView: View {
             MenuItem(title: "Full Health Check…", action: pick { model.openInTerminal("doctor") })
             MenuItem(title: "Undo Last Clean-Up…", action: pick { model.openInTerminal("undo") })
             MenuItem(title: "Settings…", action: pick { Task { await model.openSettings() } })
+            MenuToggle(title: "Open at Login", isOn: model.openAtLogin) {
+                model.toggleOpenAtLogin()
+            }
             MenuToggle(title: "Show Free Space in Menu Bar", isOn: model.showSizeInMenuBar) {
                 model.showSizeInMenuBar.toggle()
             }

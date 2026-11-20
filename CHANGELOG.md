@@ -5,6 +5,9 @@ and this project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- DustIt menu bar app: "Open at Login" option (a standard macOS login item).
+
 ## [0.1.0] - 2026-11-19
 
 The first release of DustIt: a careful, open-source disk cleaner and slowdown doctor for macOS,
