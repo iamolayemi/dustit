@@ -16,7 +16,6 @@ final class Model: ObservableObject {
     @Published var cleaning = false
     @Published var banner: Banner?
     @Published var updated: Date?
-    /// Icon-only keeps the item narrow, so a crowded (notched) menu bar is less likely to hide it.
     /// Whether DustIt opens when you log in (a macOS login item).
     @Published var openAtLogin: Bool = LoginItem.isEnabled
 
@@ -27,6 +26,7 @@ final class Model: ObservableObject {
         openAtLogin = LoginItem.isEnabled
     }
 
+    /// Icon-only keeps the item narrow, so a crowded (notched) menu bar is less likely to hide it.
     @Published var showSizeInMenuBar: Bool = UserDefaults.standard.object(forKey: "showSize") as? Bool ?? true {
         didSet { UserDefaults.standard.set(showSizeInMenuBar, forKey: "showSize") }
     }
